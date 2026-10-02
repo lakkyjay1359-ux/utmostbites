@@ -5,7 +5,7 @@ export type CartItem = {
   type: "product" | "combo";
   id: string;
   name: string;
-  variant?: string;
+  variant?: string | undefined;
   price: number;
   qty: number;
   image_key?: string | null;
