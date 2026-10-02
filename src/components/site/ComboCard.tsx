@@ -12,7 +12,7 @@ const ACCENTS: Record<string, { brush: string; dot: string }> = {
 
 export function ComboCard({ combo }: { combo: Combo }) {
   const { add } = useCart();
-  const a = ACCENTS[combo.accent] ?? ACCENTS.gold;
+  const a = ACCENTS[combo.accent] ?? { brush: "bg-gold text-primary-foreground", dot: "bg-primary" };
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-primary/50 bg-card">
       <div className="px-6 pt-6 text-center">
