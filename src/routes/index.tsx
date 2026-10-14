@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Phone } from "lucide-react";
-import hero from "@/assets/food/hero.jpg";
+import heroShop from "@/assets/food/hero-shop.jpg";
 import { BUSINESS, telHref } from "@/lib/site";
 import { combosQuery } from "@/lib/menu";
 import { ComboCard } from "@/components/site/ComboCard";
@@ -23,7 +23,7 @@ function Index() {
   return (
     <>
       <section className="relative overflow-hidden border-b-2 border-accent">
-        <img src={hero} alt="Kenyan fast food spread" width={1600} height={1008} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={heroShop} alt="Container shopfront in Yala Town with three stalls, the middle one is Utmost Bites" width={1600} height={1000} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-hero-fade" />
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:py-32">
           <p className="text-xs uppercase tracking-[0.3em] text-primary">Est. {BUSINESS.established} · Yala Town</p>
