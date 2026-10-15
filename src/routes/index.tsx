@@ -1,29 +1,34 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Phone } from "lucide-react";
-import heroShop from "@/assets/food/hero-shop.jpg";
+import heroShop from "@/assets/food/hero-serving.jpg";
 import { BUSINESS, telHref } from "@/lib/site";
-import { combosQuery } from "@/lib/menu";
-import { ComboCard } from "@/components/site/ComboCard";
+import { menuQuery } from "@/lib/menu";
+import { ProductCard } from "@/components/site/ProductCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Utmost Bites Fast Arrivals — Fuel for the Yala Hustle" },
-      { name: "description", content: "Chapati, smocha, fried chicken, smoothies and combos in Yala Town, Siaya County. Order online, call or WhatsApp." },
+      { name: "description", content: "Chapati, smocha, fried chicken, smoothies and more in Yala Town, Siaya County. Order online, call or WhatsApp." },
       { property: "og:title", content: "Utmost Bites Fast Arrivals — Yala Town" },
       { property: "og:description", content: "Fuel for the Yala Hustle. Order online for delivery or pickup." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
 });
 
+const POPULAR = ["fried-chicken", "smocha", "smoothie"];
+
 function Index() {
-  const { data: combos } = useQuery(combosQuery);
+  const { data, isLoading, isError } = useQuery(menuQuery);
+  const popular = POPULAR.map((k) => data?.products.find((p) => p.image_key === k)).filter(Boolean) as NonNullable<typeof data>["products"];
   return (
     <>
       <section className="relative overflow-hidden border-b-2 border-accent">
-        <img src={heroShop} alt="Container shopfront in Yala Town with three stalls, the middle one is Utmost Bites" width={1600} height={1000} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={heroShop} alt="Young man in an Utmost Bites T-shirt serving customers at the shop counter" width={1600} height={1000} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-hero-fade" />
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:py-32">
           <p className="text-xs uppercase tracking-[0.3em] text-primary">Est. {BUSINESS.established} · Yala Town</p>
@@ -36,9 +41,14 @@ function Index() {
         </div>
       </section>
       <section className="mx-auto max-w-7xl px-4 py-16">
-        <h2 className="text-center text-3xl font-bold text-gold">Combos</h2>
-        <div className="mx-auto mt-8 grid max-w-4xl gap-6 md:grid-cols-2">
-          {combos?.map((c) => <ComboCard key={c.id} combo={c} />)}
+        <h2 className="text-center text-3xl font-bold text-gold">Our Popular Bites</h2>
+        {isLoading && <p className="mt-8 text-center text-muted-foreground">Loading…</p>}
+        {isError && <p className="mt-8 text-center text-destructive">Couldn't load the menu right now.</p>}
+        <div className="mx-auto mt-8 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {popular.map((p) => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="mt-10 text-center">
+          <Link to="/menu" className="inline-flex rounded-full border-2 border-accent bg-gold px-8 py-3.5 font-bold uppercase tracking-wide text-primary-foreground shadow-glow">View more on our menu</Link>
         </div>
       </section>
     </>
