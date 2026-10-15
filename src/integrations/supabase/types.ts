@@ -147,8 +147,11 @@ export type Database = {
           instructions: string | null
           location: string | null
           payment: string
+          payment_ref: string | null
+          payment_status: string
           phone: string
           status: Database["public"]["Enums"]["order_status"]
+          stock_deducted: boolean
           total: number
           updated_at: string
         }
@@ -162,8 +165,11 @@ export type Database = {
           instructions?: string | null
           location?: string | null
           payment: string
+          payment_ref?: string | null
+          payment_status?: string
           phone: string
           status?: Database["public"]["Enums"]["order_status"]
+          stock_deducted?: boolean
           total: number
           updated_at?: string
         }
@@ -177,8 +183,11 @@ export type Database = {
           instructions?: string | null
           location?: string | null
           payment?: string
+          payment_ref?: string | null
+          payment_status?: string
           phone?: string
           status?: Database["public"]["Enums"]["order_status"]
+          stock_deducted?: boolean
           total?: number
           updated_at?: string
         }
@@ -188,6 +197,42 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_ingredients: {
+        Row: {
+          id: string
+          product_id: string
+          qty: number
+          stock_item_id: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          qty: number
+          stock_item_id: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          qty?: number
+          stock_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_ingredients_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_ingredients_stock_item_id_fkey"
+            columns: ["stock_item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
             referencedColumns: ["id"]
           },
         ]
@@ -254,6 +299,93 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_items: {
+        Row: {
+          created_at: string
+          id: string
+          last_restocked_at: string | null
+          min_level: number
+          name: string
+          quantity: number
+          supplier: string | null
+          unit: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_restocked_at?: string | null
+          min_level?: number
+          name: string
+          quantity?: number
+          supplier?: string | null
+          unit?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_restocked_at?: string | null
+          min_level?: number
+          name?: string
+          quantity?: number
+          supplier?: string | null
+          unit?: string
+        }
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          change: number
+          cost: number | null
+          created_at: string
+          id: string
+          kind: string
+          moved_on: string
+          notes: string | null
+          order_id: string | null
+          stock_item_id: string
+          supplier: string | null
+        }
+        Insert: {
+          change: number
+          cost?: number | null
+          created_at?: string
+          id?: string
+          kind: string
+          moved_on?: string
+          notes?: string | null
+          order_id?: string | null
+          stock_item_id: string
+          supplier?: string | null
+        }
+        Update: {
+          change?: number
+          cost?: number | null
+          created_at?: string
+          id?: string
+          kind?: string
+          moved_on?: string
+          notes?: string | null
+          order_id?: string | null
+          stock_item_id?: string
+          supplier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_stock_item_id_fkey"
+            columns: ["stock_item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -295,6 +427,9 @@ export type Database = {
         | "Ready"
         | "Completed"
         | "Cancelled"
+        | "Confirmed"
+        | "Ready for Collection"
+        | "Out for Delivery"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -429,6 +564,9 @@ export const Constants = {
         "Ready",
         "Completed",
         "Cancelled",
+        "Confirmed",
+        "Ready for Collection",
+        "Out for Delivery",
       ],
     },
   },
