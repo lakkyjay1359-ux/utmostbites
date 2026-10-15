@@ -32,6 +32,8 @@ export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => orderSchema.parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: acc } = await supabaseAdmin.from("settings").select("value").eq("key", "accepting_orders").maybeSingle();
+    if (acc?.value === "false") return { ok: false as const, error: "We're not taking online orders right now. Please call or WhatsApp us." };
     const productIds = data.items.filter((i) => i.type === "product").map((i) => i.id);
     const comboIds = data.items.filter((i) => i.type === "combo").map((i) => i.id);
     const [pRes, cRes] = await Promise.all([

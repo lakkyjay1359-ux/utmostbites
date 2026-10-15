@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Admin sales/period maths lives in src/lib/admin.ts (Nairobi UTC+3; completed sale = status Completed AND payment_status paid) — one definition shared by dashboard, reports and tests.
+- Stock deduction/restoration on order status change is done by the orders_stock_sync DB trigger, so it can't double-run from the UI.
