@@ -1,3 +1,5 @@
+import { combosQuery } from "@/lib/menu";
+import { ComboCard } from "@/components/site/ComboCard";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -18,6 +20,7 @@ export const Route = createFileRoute("/menu")({
 
 function MenuPage() {
   const { data, isLoading, error } = useQuery(menuQuery);
+  const { data: combos } = useQuery(combosQuery);
   const [cat, setCat] = useState("all");
   if (isLoading) return <p className="p-16 text-center text-muted-foreground">Loading menu…</p>;
   if (error || !data) return <p className="p-16 text-center text-destructive">Couldn't load the menu. Please call or WhatsApp us.</p>;
@@ -41,6 +44,12 @@ function MenuPage() {
           </div>
         </section>
       ))}
+      {cat === "all" && !!combos?.length && (
+        <section className="mt-12">
+          <h2 className="mb-6 border-b border-accent pb-2 text-2xl font-bold text-primary">Combos</h2>
+          <div className="grid gap-6 md:grid-cols-2">{combos.map((c) => <ComboCard key={c.id} combo={c} />)}</div>
+        </section>
+      )}
     </div>
   );
 }
