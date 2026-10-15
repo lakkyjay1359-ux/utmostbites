@@ -25,6 +25,7 @@ type Tab = (typeof NAV)[number]["id"];
 
 function AdminPage() {
   const [state, setState] = useState<"loading" | "out" | "denied" | "in">("loading");
+  const [showLogin, setShowLogin] = useState(false);
   const check = async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) return setState("out");
@@ -33,7 +34,15 @@ function AdminPage() {
   };
   useEffect(() => { check(); }, []);
   if (state === "loading") return <p className="p-16 text-center">Loading…</p>;
-  if (state === "out") return <Login onDone={check} />;
+  if (state === "out") return showLogin ? <Login onDone={check} /> : (
+    <>
+      <div className="border-b border-accent bg-accent/20 px-4 py-2 text-center text-sm">
+        Preview of the control room — real orders, stock and sales stay hidden until staff sign in.{" "}
+        <button className="font-bold underline" onClick={() => setShowLogin(true)}>Staff sign in</button>
+      </div>
+      <ControlRoom onLogout={() => setShowLogin(true)} />
+    </>
+  );
   if (state === "denied") return <p className="p-16 text-center">This account is not an admin. <button className="underline" onClick={async () => { await supabase.auth.signOut(); setState("out"); }}>Sign out</button></p>;
   return <ControlRoom onLogout={async () => { await supabase.auth.signOut(); setState("out"); }} />;
 }
