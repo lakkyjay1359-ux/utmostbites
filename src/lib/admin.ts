@@ -21,7 +21,7 @@ export function periodRange(period: Period, day: string, customTo?: string): { f
     return { from, to: addDays(from, 6) };
   }
   if (period === "monthly") {
-    const [y, m] = day.split("-").map(Number);
+    const [y, m] = day.split("-").map(Number) as [number, number];
     const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
     return { from: `${day.slice(0, 7)}-01`, to: `${day.slice(0, 7)}-${String(last).padStart(2, "0")}` };
   }

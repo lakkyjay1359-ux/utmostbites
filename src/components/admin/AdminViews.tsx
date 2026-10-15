@@ -220,11 +220,11 @@ function ProductForm({ p, cats, stock, ingr, onClose, onSaved }: { p: Prod; cats
   const [ing, setIng] = useState({ stock_item_id: "", qty: "" });
   const save = async () => {
     const variants = parseVariants(f.variantsText);
-    if (f.name.trim().length < 2) return toast.error("Enter a product name");
-    if (variants?.some((v) => !v.label || !(v.price >= 0))) return toast.error("Sizes must look like Quarter:200, Half:350");
-    if (!(f.price >= 0)) return toast.error("Enter a valid price");
+    if (f.name.trim().length < 2) return void toast.error("Enter a product name");
+    if (variants?.some((v) => !v.label || !(v.price >= 0))) return void toast.error("Sizes must look like Quarter:200, Half:350");
+    if (!(f.price >= 0)) return void toast.error("Enter a valid price");
     setBusy(true);
-    const row = { name: f.name.trim(), description: f.description.trim(), price: variants ? variants[0].price : Math.round(f.price), variants, category_id: f.category_id, image_key: f.image_key, available: f.available, sort: f.sort };
+    const row = { name: f.name.trim(), description: f.description.trim(), price: variants ? variants[0]!.price : Math.round(f.price), variants, category_id: f.category_id, image_key: f.image_key, available: f.available, sort: f.sort };
     const { error } = p.id ? await supabase.from("products").update(row).eq("id", p.id) : await supabase.from("products").insert(row);
     setBusy(false);
     if (!fail(error)) { toast.success("Saved — the menu is updated"); onSaved(); onClose(); }
@@ -255,7 +255,7 @@ function ProductForm({ p, cats, stock, ingr, onClose, onSaved }: { p: Prod; cats
                 <select className={input} value={ing.stock_item_id} onChange={(e) => setIng({ ...ing, stock_item_id: e.target.value })}><option value="">Stock item…</option>{stock.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.unit})</option>)}</select>
                 <input className={`${input} w-24`} type="number" min={0} step="any" placeholder="Qty" value={ing.qty} onChange={(e) => setIng({ ...ing, qty: e.target.value })} />
                 <button className={btnGhost} onClick={async () => {
-                  if (!ing.stock_item_id || !(Number(ing.qty) > 0)) return toast.error("Pick an item and quantity");
+                  if (!ing.stock_item_id || !(Number(ing.qty) > 0)) return void toast.error("Pick an item and quantity");
                   if (!fail((await supabase.from("product_ingredients").upsert({ product_id: p.id!, stock_item_id: ing.stock_item_id, qty: Number(ing.qty) }, { onConflict: "product_id,stock_item_id" })).error)) { setIng({ stock_item_id: "", qty: "" }); onSaved(); }
                 }}>Add</button>
               </div>) : <p className="text-muted-foreground">Add stock items first in Stock Management.</p>}
@@ -276,7 +276,7 @@ function ComboForm({ c, onClose, onSaved }: { c: any; onClose: () => void; onSav
         <label className="block">Includes (comma separated)<input className={input} value={f.items} onChange={(e) => setF({ ...f, items: e.target.value })} /></label>
         <label className="block">Price (KSh)<input type="number" min={0} className={input} value={f.price} onChange={(e) => setF({ ...f, price: Number(e.target.value) })} /></label>
         <button className={btn} onClick={async () => {
-          if (!(f.price >= 0) || f.name.trim().length < 2) return toast.error("Check name and price");
+          if (!(f.price >= 0) || f.name.trim().length < 2) return void toast.error("Check name and price");
           const { error } = await supabase.from("combos").update({ name: f.name.trim(), tagline: f.tagline, items: f.items.split(",").map((x: string) => x.trim()).filter(Boolean), price: Math.round(f.price) }).eq("id", c.id);
           if (!fail(error)) { toast.success("Combo saved"); onSaved(); onClose(); }
         }}>Save</button>
@@ -343,7 +343,7 @@ function RestockForm({ s, onClose, onSaved }: { s: any; onClose: () => void; onS
         <label className="block">Purchase cost (KSh)<input type="number" min={0} className={input} value={f.cost} onChange={(e) => setF({ ...f, cost: e.target.value })} /></label>
         <label className="block">Notes<input className={input} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></label>
         <button className={btn} disabled={busy} onClick={async () => {
-          const q = Number(f.qty); if (!(q > 0)) return toast.error("Enter the quantity added");
+          const q = Number(f.qty); if (!(q > 0)) return void toast.error("Enter the quantity added");
           setBusy(true);
           const m = await supabase.from("stock_movements").insert({ stock_item_id: s.id, change: q, kind: "restock", moved_on: f.date, supplier: f.supplier || null, cost: f.cost ? Number(f.cost) : null, notes: f.notes || null });
           const u = m.error ? m : await supabase.from("stock_items").update({ quantity: Number(s.quantity) + q, last_restocked_at: new Date(`${f.date}T12:00:00+03:00`).toISOString(), supplier: f.supplier || s.supplier }).eq("id", s.id);
@@ -367,7 +367,7 @@ function StockItemForm({ s, onClose, onSaved }: { s: any; onClose: () => void; o
         <label className="block">Supplier<input className={input} value={f.supplier} onChange={(e) => setF({ ...f, supplier: e.target.value })} /></label>
         <button className={btn} onClick={async () => {
           const quantity = Number(f.quantity), min_level = Number(f.min_level);
-          if (f.name.trim().length < 2 || !f.unit.trim() || !(quantity >= 0) || !(min_level >= 0)) return toast.error("Check the name, unit and numbers");
+          if (f.name.trim().length < 2 || !f.unit.trim() || !(quantity >= 0) || !(min_level >= 0)) return void toast.error("Check the name, unit and numbers");
           const row = { name: f.name.trim(), unit: f.unit.trim(), quantity, min_level, supplier: f.supplier || null };
           let error;
           if (s.id) {
@@ -457,7 +457,7 @@ export function SettingsView() {
     <div className="max-w-lg space-y-3">
       <h1 className="text-3xl font-bold text-gold">Settings</h1>
       {SETTING_FIELDS.map((s) => <label key={s.key} className="block text-sm">{s.label}<input className={input} value={v[s.key] ?? ""} onChange={(e) => setF({ ...v, [s.key]: e.target.value })} /></label>)}
-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={v.accepting_orders !== "false"} onChange={(e) => setF({ ...v, accepting_orders: String(e.target.checked) })} /> Accept online orders</label>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={v["accepting_orders"] !== "false"} onChange={(e) => setF({ ...v, accepting_orders: String(e.target.checked) })} /> Accept online orders</label>
       <button className={btn} onClick={async () => {
         const rows = [...SETTING_FIELDS.map((s) => s.key), "accepting_orders"].map((key) => ({ key, value: (v[key] ?? "").trim() }));
         if (!fail((await supabase.from("settings").upsert(rows)).error)) { toast.success("Settings saved"); setF(null); qc.invalidateQueries(); }
