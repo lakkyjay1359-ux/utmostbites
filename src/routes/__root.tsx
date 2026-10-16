@@ -72,7 +72,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       children: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "FastFoodRestaurant",
-        name: "Utmost Bites Fast Arrivals",
+        name: "Utmost Bites and Cafe Fast Arrivals",
         slogan: "Fuel for the Yala Hustle",
         url: "https://utmostbites.lovable.app/",
         telephone: "+254794567401",
