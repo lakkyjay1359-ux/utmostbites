@@ -25,8 +25,7 @@ export function SiteHeader() {
         <Link to="/" className="flex items-center gap-2 leading-none" onClick={() => setOpen(false)}>
           <img src={logo} alt="Utmost Bites logo" width={44} height={44} className="h-11 w-11 object-contain" />
           <span className="flex flex-col">
-            <span className="font-display text-base font-bold tracking-wide text-gold sm:text-lg sm:whitespace-nowrap">UTMOST BITES AND CAFE</span>
-            <span className="font-display text-sm font-bold tracking-wide text-gold sm:text-base sm:whitespace-nowrap">FAST ARRIVALS</span>
+            <span className="font-display text-lg font-bold tracking-wide text-gold whitespace-nowrap">UTMOST BITES AND CAFE</span>
             <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Est. 2024</span>
           </span>
         </Link>
