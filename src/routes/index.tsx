@@ -23,7 +23,6 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://utmostbites.lovable.app/" },
-      { rel: "preload", as: "image", href: hero1600, imageSrcSet: HERO_SRCSET, imageSizes: "100vw", fetchPriority: "high" },
     ],
   }),
   component: Index,
