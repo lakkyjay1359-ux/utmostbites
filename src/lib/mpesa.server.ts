@@ -1,4 +1,4 @@
-// M-Pesa Daraja (Lipa Na M-Pesa Online / STK Push) helpers.
+// M-Pesa Daraja (Lipa Na M-Pesa Online / STK Push) helpers — Buy Goods (Till) flow.
 // Server-only: reads MPESA_* secrets from the environment inside functions.
 
 const baseUrl = () =>
@@ -14,8 +14,17 @@ async function getAccessToken(): Promise<string> {
   const res = await fetch(`${baseUrl()}/oauth/v1/generate?grant_type=client_credentials`, {
     headers: { Authorization: `Basic ${auth}` },
   });
-  const body = (await res.json()) as { access_token?: string };
-  if (!res.ok || !body.access_token) throw new Error("Could not reach M-Pesa. Please try again.");
+  const body = (await res.json().catch(() => ({}))) as {
+    access_token?: string;
+    errorMessage?: string;
+    ResponseDescription?: string;
+  };
+  if (!res.ok || !body.access_token) {
+    console.error("Daraja token error", res.status, JSON.stringify(body));
+    throw new Error(
+      body.errorMessage || body.ResponseDescription || "Could not reach M-Pesa. Please try again."
+    );
+  }
   return body.access_token;
 }
 
@@ -33,46 +42,67 @@ const nairobiTimestamp = () => {
   );
 };
 
+// Normalize to 2547XXXXXXXX / 2541XXXXXXXX: strip +, spaces, dashes; leading 0 -> 254.
+const to254 = (phone: string): string => {
+  let d = phone.replace(/[\s+-]/g, "");
+  if (d.startsWith("0")) d = "254" + d.slice(1);
+  if (!/^254(7|1)\d{8}$/.test(d)) throw new Error("Enter a valid Safaricom number, e.g. 0712 345 678.");
+  return d;
+};
+
 export async function stkPush(args: {
-  phone: string; // 07... or 01... Kenyan format
+  phone: string; // any Kenyan format; normalized here
   amount: number;
   orderCode: string;
   callbackUrl: string;
 }): Promise<{ checkoutRequestId: string }> {
-  const shortcode = process.env["MPESA_SHORTCODE"];
+  const storeNumber = process.env["MPESA_STORE_NUMBER"];
+  const tillNumber = process.env["MPESA_TILL_NUMBER"];
+  const txnType = process.env["MPESA_TXN_TYPE"];
   const passkey = process.env["MPESA_PASSKEY"];
-  if (!shortcode || !passkey) throw new Error("M-Pesa is not configured yet.");
+  if (!storeNumber || !tillNumber || !txnType || !passkey) {
+    throw new Error("M-Pesa is not configured yet.");
+  }
 
   const timestamp = nairobiTimestamp();
-  const password = btoa(`${shortcode}${passkey}${timestamp}`);
-  const phone254 = "254" + args.phone.slice(1);
+  const password = btoa(`${storeNumber}${passkey}${timestamp}`);
+  const phone254 = to254(args.phone);
   const token = await getAccessToken();
+
+  console.error("Daraja STK push CallBackURL:", args.callbackUrl);
 
   const res = await fetch(`${baseUrl()}/mpesa/stkpush/v1/processrequest`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      BusinessShortCode: shortcode,
+      BusinessShortCode: storeNumber,
       Password: password,
       Timestamp: timestamp,
-      TransactionType: "CustomerPayBillOnline",
+      TransactionType: txnType,
       Amount: Math.max(1, Math.round(args.amount)),
       PartyA: phone254,
-      PartyB: shortcode,
+      PartyB: tillNumber,
       PhoneNumber: phone254,
       CallBackURL: args.callbackUrl,
       AccountReference: args.orderCode,
       TransactionDesc: `Utmost Bites order ${args.orderCode}`,
     }),
   });
-  const body = (await res.json()) as {
+  const body = (await res.json().catch(() => ({}))) as {
     ResponseCode?: string;
+    ResponseDescription?: string;
     CheckoutRequestID?: string;
     errorMessage?: string;
     CustomerMessage?: string;
   };
   if (!res.ok || body.ResponseCode !== "0" || !body.CheckoutRequestID) {
-    throw new Error(body.errorMessage || body.CustomerMessage || "M-Pesa request was rejected. Check the phone number and try again.");
+    console.error("Daraja STK push error", res.status, JSON.stringify(body));
+    throw new Error(
+      body.errorMessage ||
+        body.ResponseDescription ||
+        body.CustomerMessage ||
+        "M-Pesa request was rejected. Check the phone number and try again."
+    );
   }
   return { checkoutRequestId: body.CheckoutRequestID };
 }
