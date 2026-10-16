@@ -28,7 +28,9 @@ export const initiateMpesaPayment = createServerFn({ method: "POST" })
     if (!order || order.phone !== phone) return { ok: false as const, error: "Order not found. Check the code and phone number." };
     if (order.payment_status === "paid") return { ok: false as const, error: "This order is already paid." };
 
-    const origin = getRequestUrl().origin;
+    let origin = getRequestUrl().origin;
+    // Safaricom must be able to reach the callback — localhost (dev preview) won't work.
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) origin = "https://utmostbites.lovable.app";
     const { stkPush } = await import("./mpesa.server");
     try {
       const { checkoutRequestId } = await stkPush({

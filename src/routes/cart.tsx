@@ -52,7 +52,7 @@ function CartPage() {
           {mpesa === "paid" ? (
             <p className="font-semibold text-fresh">Payment received — thank you! Your order is being prepared.</p>
           ) : mpesa === "failed" ? (
-            <p className="text-sm text-destructive">The M-Pesa payment didn't go through. You can pay cash on {f.fulfillment} or try again from Track Order.</p>
+            <p className="text-sm text-destructive">{err || "The M-Pesa payment didn't go through."} You can pay cash on {f.fulfillment} or try again from Track Order.</p>
           ) : (
             <p className="text-sm text-muted-foreground">
               {mpesa === "pushing" ? "Sending M-Pesa prompt…" : "Check your phone and enter your M-Pesa PIN to complete payment…"}
