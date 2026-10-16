@@ -41,7 +41,7 @@ export const initiateMpesaPayment = createServerFn({ method: "POST" })
         phone,
         amount: order.total,
         orderCode: order.code,
-        callbackUrl: `${origin}/api/public/mpesa-callback`,
+        callbackUrl,
       });
       await supabaseAdmin
         .from("orders")
