@@ -16,7 +16,9 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as CombosRouteImport } from './routes/combos'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as MenuRouteImport } from './routes/menu'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TrackRouteImport } from './routes/track'
+import { Route as ApiPublicAdminBootstrapRouteImport } from './routes/api/public/admin-bootstrap'
 import { Route as ApiPublicMpesaCallbackRouteImport } from './routes/api/public/mpesa-callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -54,9 +56,19 @@ const MenuRoute = MenuRouteImport.update({
   path: '/menu',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrackRoute = TrackRouteImport.update({
   id: '/track',
   path: '/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAdminBootstrapRoute = ApiPublicAdminBootstrapRouteImport.update({
+  id: '/api/public/admin-bootstrap',
+  path: '/api/public/admin-bootstrap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicMpesaCallbackRoute = ApiPublicMpesaCallbackRouteImport.update({
@@ -73,7 +85,9 @@ export interface FileRoutesByFullPath {
   '/combos': typeof CombosRoute
   '/contact': typeof ContactRoute
   '/menu': typeof MenuRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
+  '/api/public/admin-bootstrap': typeof ApiPublicAdminBootstrapRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -84,7 +98,9 @@ export interface FileRoutesByTo {
   '/combos': typeof CombosRoute
   '/contact': typeof ContactRoute
   '/menu': typeof MenuRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
+  '/api/public/admin-bootstrap': typeof ApiPublicAdminBootstrapRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
 }
 export interface FileRoutesById {
@@ -96,7 +112,9 @@ export interface FileRoutesById {
   '/combos': typeof CombosRoute
   '/contact': typeof ContactRoute
   '/menu': typeof MenuRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/track': typeof TrackRoute
+  '/api/public/admin-bootstrap': typeof ApiPublicAdminBootstrapRoute
   '/api/public/mpesa-callback': typeof ApiPublicMpesaCallbackRoute
 }
 export interface FileRouteTypes {
@@ -109,7 +127,9 @@ export interface FileRouteTypes {
     | '/combos'
     | '/contact'
     | '/menu'
+    | '/reset-password'
     | '/track'
+    | '/api/public/admin-bootstrap'
     | '/api/public/mpesa-callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -120,7 +140,9 @@ export interface FileRouteTypes {
     | '/combos'
     | '/contact'
     | '/menu'
+    | '/reset-password'
     | '/track'
+    | '/api/public/admin-bootstrap'
     | '/api/public/mpesa-callback'
   id:
     | '__root__'
@@ -131,7 +153,9 @@ export interface FileRouteTypes {
     | '/combos'
     | '/contact'
     | '/menu'
+    | '/reset-password'
     | '/track'
+    | '/api/public/admin-bootstrap'
     | '/api/public/mpesa-callback'
   fileRoutesById: FileRoutesById
 }
@@ -143,7 +167,9 @@ export interface RootRouteChildren {
   CombosRoute: typeof CombosRoute
   ContactRoute: typeof ContactRoute
   MenuRoute: typeof MenuRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TrackRoute: typeof TrackRoute
+  ApiPublicAdminBootstrapRoute: typeof ApiPublicAdminBootstrapRoute
   ApiPublicMpesaCallbackRoute: typeof ApiPublicMpesaCallbackRoute
 }
 
@@ -198,11 +224,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MenuRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/track': {
       id: '/track'
       path: '/track'
       fullPath: '/track'
       preLoaderRoute: typeof TrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/admin-bootstrap': {
+      id: '/api/public/admin-bootstrap'
+      path: '/api/public/admin-bootstrap'
+      fullPath: '/api/public/admin-bootstrap'
+      preLoaderRoute: typeof ApiPublicAdminBootstrapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/mpesa-callback': {
@@ -223,7 +263,9 @@ const rootRouteChildren: RootRouteChildren = {
   CombosRoute: CombosRoute,
   ContactRoute: ContactRoute,
   MenuRoute: MenuRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TrackRoute: TrackRoute,
+  ApiPublicAdminBootstrapRoute: ApiPublicAdminBootstrapRoute,
   ApiPublicMpesaCallbackRoute: ApiPublicMpesaCallbackRoute,
 }
 export const routeTree = rootRouteImport
