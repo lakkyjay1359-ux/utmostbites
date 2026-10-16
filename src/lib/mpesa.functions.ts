@@ -29,15 +29,19 @@ export const initiateMpesaPayment = createServerFn({ method: "POST" })
     if (order.payment_status === "paid") return { ok: false as const, error: "This order is already paid." };
 
     let origin = getRequestUrl().origin;
-    // Safaricom must be able to reach the callback — localhost (dev preview) won't work.
-    if (origin.includes("localhost") || origin.includes("127.0.0.1")) origin = "https://utmostbites.lovable.app";
+    // Safaricom must be able to reach the callback — localhost or preview URLs won't work.
+    if (origin.includes("localhost") || origin.includes("127.0.0.1") || origin.includes("id-preview")) {
+      origin = "https://utmostbites.lovable.app";
+    }
+    const callbackUrl = `${origin}/api/public/mpesa-callback`;
+    console.error("M-Pesa callback URL:", callbackUrl);
     const { stkPush } = await import("./mpesa.server");
     try {
       const { checkoutRequestId } = await stkPush({
         phone,
         amount: order.total,
         orderCode: order.code,
-        callbackUrl: `${origin}/api/public/mpesa-callback`,
+        callbackUrl,
       });
       await supabaseAdmin
         .from("orders")
