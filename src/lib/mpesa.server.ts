@@ -2,13 +2,13 @@
 // Server-only: reads MPESA_* secrets from the environment inside functions.
 
 const baseUrl = () =>
-  process.env.MPESA_ENV === "production"
+  process.env["MPESA_ENV === "production"
     ? "https://api.safaricom.co.ke"
     : "https://sandbox.safaricom.co.ke";
 
 async function getAccessToken(): Promise<string> {
-  const key = process.env.MPESA_CONSUMER_KEY;
-  const secret = process.env.MPESA_CONSUMER_SECRET;
+  const key = process.env["MPESA_CONSUMER_KEY"];
+  const secret = process.env["MPESA_CONSUMER_SECRET"];
   if (!key || !secret) throw new Error("M-Pesa is not configured yet.");
   const auth = btoa(`${key}:${secret}`);
   const res = await fetch(`${baseUrl()}/oauth/v1/generate?grant_type=client_credentials`, {
@@ -39,8 +39,8 @@ export async function stkPush(args: {
   orderCode: string;
   callbackUrl: string;
 }): Promise<{ checkoutRequestId: string }> {
-  const shortcode = process.env.MPESA_SHORTCODE;
-  const passkey = process.env.MPESA_PASSKEY;
+  const shortcode = process.env["MPESA_SHORTCODE"];
+  const passkey = process.env["MPESA_PASSKEY"];
   if (!shortcode || !passkey) throw new Error("M-Pesa is not configured yet.");
 
   const timestamp = nairobiTimestamp();
