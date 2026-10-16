@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_bootstrap: {
+        Row: {
+          done: boolean
+          done_at: string | null
+          singleton: boolean
+          user_id: string | null
+        }
+        Insert: {
+          done?: boolean
+          done_at?: string | null
+          singleton?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          done?: boolean
+          done_at?: string | null
+          singleton?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           id: string
@@ -432,6 +453,7 @@ export type Database = {
     Functions: {
       admin_exists: { Args: never; Returns: boolean }
       claim_first_admin: { Args: never; Returns: boolean }
+      finalize_admin_bootstrap: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

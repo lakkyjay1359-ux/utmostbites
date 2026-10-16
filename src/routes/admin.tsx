@@ -53,6 +53,30 @@ function Login({ onDone }: { onDone: () => void }) {
       <input className={input} type="password" required minLength={8} placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} />
       {msg && <p className="text-sm text-destructive">{msg}</p>}
       <button disabled={busy} className="w-full rounded-full bg-gold py-2.5 font-bold text-primary-foreground disabled:opacity-50">{busy ? "Signing in…" : "Sign in"}</button>
+      <button type="button" className="w-full text-sm underline" onClick={async () => {
+        const { error } = await supabase.auth.resetPasswordForEmail(OWNER_EMAIL, { redirectTo: `${window.location.origin}/reset-password` });
+        setMsg(error ? error.message : "If the owner account exists, a reset link was sent to the owner's email.");
+      }}>Forgot password?</button>
+    </form>
+  );
+}
+
+const OWNER_EMAIL = "lewisirabu@gmail.com";
+
+function ChangePassword() {
+  const [cur, setCur] = useState(""); const [pw, setPw] = useState(""); const [busy, setBusy] = useState(false);
+  const input = "w-full rounded-lg border border-input bg-background px-3 py-2.5";
+  return (
+    <form className="mt-8 max-w-sm space-y-3 rounded-xl border border-border p-4" onSubmit={async (e) => {
+      e.preventDefault(); setBusy(true);
+      const { error } = await supabase.auth.updateUser({ password: pw, current_password: cur } as { password: string });
+      setBusy(false);
+      if (error) toast.error(error.message); else { toast.success("Password changed"); setCur(""); setPw(""); }
+    }}>
+      <h2 className="font-bold text-gold">Change password</h2>
+      <input className={input} type="password" required placeholder="Current password" value={cur} onChange={(e) => setCur(e.target.value)} />
+      <input className={input} type="password" required minLength={8} placeholder="New password" value={pw} onChange={(e) => setPw(e.target.value)} />
+      <button disabled={busy} className="rounded-full bg-gold px-5 py-2 font-bold text-primary-foreground disabled:opacity-50">{busy ? "Saving…" : "Change password"}</button>
     </form>
   );
 }
@@ -99,7 +123,7 @@ function ControlRoom({ onLogout }: { onLogout: () => void }) {
         {tab === "menu" && <MenuView />}
         {tab === "stock" && <StockView />}
         {tab === "sales" && <SalesView />}
-        {tab === "settings" && <SettingsView />}
+        {tab === "settings" && <><SettingsView /><ChangePassword /></>}
       </main>
     </div>
   );

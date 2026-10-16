@@ -22,6 +22,13 @@
       "when": 1792137559333,
       "tag": "0002_paid_order_numbers_and_owner_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792140844268,
+      "tag": "0003_admin_bootstrap",
+      "breakpoints": true
     }
   ]
 }
