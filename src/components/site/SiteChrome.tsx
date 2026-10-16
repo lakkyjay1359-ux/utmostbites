@@ -72,7 +72,7 @@ export function SiteFooter() {
     <footer className="mt-20 border-t-2 border-accent bg-espresso">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-4">
         <div className="md:col-span-2">
-          <p className="font-display text-2xl font-bold text-gold">UTMOST BITES FAST ARRIVALS</p>
+          <p className="font-display text-2xl font-bold text-gold">UTMOST BITES AND CAFE FAST ARRIVALS</p>
           <p className="mt-1 font-script text-xl text-primary">{BUSINESS.tagline}</p>
           <p className="mt-4 text-sm text-muted-foreground">{BUSINESS.location}</p>
           {hours && <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">Hours: {hours}</p>}
