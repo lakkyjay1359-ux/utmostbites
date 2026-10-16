@@ -146,6 +146,7 @@ export type Database = {
           id: string
           instructions: string | null
           location: string | null
+          mpesa_checkout_request_id: string | null
           payment: string
           payment_ref: string | null
           payment_status: string
@@ -164,6 +165,7 @@ export type Database = {
           id?: string
           instructions?: string | null
           location?: string | null
+          mpesa_checkout_request_id?: string | null
           payment: string
           payment_ref?: string | null
           payment_status?: string
@@ -182,6 +184,7 @@ export type Database = {
           id?: string
           instructions?: string | null
           location?: string | null
+          mpesa_checkout_request_id?: string | null
           payment?: string
           payment_ref?: string | null
           payment_status?: string

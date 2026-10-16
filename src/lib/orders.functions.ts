@@ -15,7 +15,7 @@ const orderSchema = z.object({
   fulfillment: z.enum(["delivery", "pickup"]),
   location: z.string().trim().max(200).optional().default(""),
   instructions: z.string().trim().max(500).optional().default(""),
-  payment: z.enum(["cash", "mpesa_on_delivery"]),
+  payment: z.enum(["cash", "mpesa_on_delivery", "mpesa"]),
   items: z.array(z.object({
     type: z.enum(["product", "combo"]),
     id: z.string().uuid(),

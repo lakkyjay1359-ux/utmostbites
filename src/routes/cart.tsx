@@ -5,6 +5,7 @@ import { Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { ksh, whatsappHref } from "@/lib/site";
 import { placeOrder } from "@/lib/orders.functions";
+import { initiateMpesaPayment, mpesaPaymentStatus } from "@/lib/mpesa.functions";
 import { QtyStepper } from "@/components/site/ProductCard";
 
 export const Route = createFileRoute("/cart")({
@@ -26,10 +27,13 @@ export const Route = createFileRoute("/cart")({
 function CartPage() {
   const cart = useCart();
   const submit = useServerFn(placeOrder);
-  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", location: "", instructions: "", payment: "cash" as "cash" | "mpesa_on_delivery" });
+  const payMpesa = useServerFn(initiateMpesaPayment);
+  const checkPaid = useServerFn(mpesaPaymentStatus);
+  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", location: "", instructions: "", payment: "cash" as "cash" | "mpesa_on_delivery" | "mpesa" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ code: string; total: number } | null>(null);
+  const [mpesa, setMpesa] = useState<"idle" | "pushing" | "waiting" | "paid" | "failed">("idle");
 
   const summary = [
     "Hi Utmost Bites! My order:",
@@ -43,7 +47,21 @@ function CartPage() {
     <div className="mx-auto max-w-xl px-4 py-16 text-center">
       <h1 className="text-3xl font-bold text-gold">Order received!</h1>
       <p className="mt-4">Your order code is <strong className="text-primary">{done.code}</strong> · Total {ksh(done.total)}</p>
-      <p className="mt-2 text-sm text-muted-foreground">Pay on {f.fulfillment === "delivery" ? "delivery" : "pickup"}. Save your code to track your order.</p>
+      {f.payment === "mpesa" ? (
+        <div className="mt-4">
+          {mpesa === "paid" ? (
+            <p className="font-semibold text-fresh">Payment received — thank you! Your order is being prepared.</p>
+          ) : mpesa === "failed" ? (
+            <p className="text-sm text-destructive">The M-Pesa payment didn't go through. You can pay cash on {f.fulfillment} or try again from Track Order.</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {mpesa === "pushing" ? "Sending M-Pesa prompt…" : "Check your phone and enter your M-Pesa PIN to complete payment…"}
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="mt-2 text-sm text-muted-foreground">Pay on {f.fulfillment === "delivery" ? "delivery" : "pickup"}. Save your code to track your order.</p>
+      )}
       <Link to="/track" className="mt-6 inline-block rounded-full bg-gold px-6 py-3 font-bold text-primary-foreground">Track order</Link>
     </div>
   );
@@ -59,7 +77,22 @@ function CartPage() {
     e.preventDefault(); setErr(""); setBusy(true);
     try {
       const r = await submit({ data: { ...f, items: cart.items.map((i) => ({ type: i.type, id: i.id, variant: i.variant, qty: i.qty })) } });
-      if (r.ok) { setDone({ code: r.code, total: r.total }); cart.clear(); } else setErr(r.error);
+      if (r.ok) {
+        setDone({ code: r.code, total: r.total }); cart.clear();
+        if (f.payment === "mpesa") {
+          setMpesa("pushing");
+          const p = await payMpesa({ data: { code: r.code, phone: f.phone } });
+          if (!p.ok) { setMpesa("failed"); setErr(p.error); return; }
+          setMpesa("waiting");
+          for (let i = 0; i < 20; i++) {
+            await new Promise((res) => setTimeout(res, 5000));
+            const s = await checkPaid({ data: { code: r.code, phone: f.phone } });
+            if (s.found && s.paymentStatus === "paid") { setMpesa("paid"); return; }
+            if (s.found && s.paymentStatus === "failed") { setMpesa("failed"); return; }
+          }
+          setMpesa("failed");
+        }
+      } else setErr(r.error);
     } catch (x: any) {
       setErr(x?.message?.includes("phone") ? "Enter a valid Kenyan phone number." : "Please check your details (name, phone, delivery location).");
     } finally { setBusy(false); }
@@ -95,6 +128,7 @@ function CartPage() {
         {f.fulfillment === "delivery" && <input required className={input} placeholder="Delivery location in Yala" value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} />}
         <textarea className={input} placeholder="Instructions (optional)" value={f.instructions} onChange={(e) => setF({ ...f, instructions: e.target.value })} />
         <select className={input} value={f.payment} onChange={(e) => setF({ ...f, payment: e.target.value as any })}>
+          <option value="mpesa">M-Pesa now (Lipa na M-Pesa prompt)</option>
           <option value="cash">Cash on {f.fulfillment}</option>
           <option value="mpesa_on_delivery">M-Pesa to staff on {f.fulfillment}</option>
         </select>
