@@ -19,7 +19,7 @@ export function ComboCard({ combo }: { combo: Combo }) {
         <h3 className={`brush font-script text-3xl ${a.brush}`}>{combo.name}</h3>
         <p className="mt-3 text-xs font-semibold uppercase tracking-[0.25em] text-foreground/80">{combo.tagline}</p>
       </div>
-      <img src={imageFor(combo.image_key)} alt={combo.name} loading="lazy" width={1024} height={768} className={`mt-4 aspect-[4/3] w-full object-cover ${combo.available ? "" : "grayscale"}`} />
+      <img src={imageFor(combo.image_key)} alt={combo.name} loading="lazy" width={800} height={600} decoding="async" className={`mt-4 aspect-[4/3] w-full object-cover ${combo.available ? "" : "grayscale"}`} />
       <div className="flex flex-1 flex-col p-6">
         <p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">What's inside</p>
         <ul className="space-y-1.5">

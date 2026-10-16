@@ -4,11 +4,15 @@ import { BUSINESS } from "@/lib/site";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
+      { property: "og:url", content: "https://utmostbites.lovable.app/about" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "About — Utmost Bites Fast Arrivals" },
       { name: "description", content: "A Yala Town fast-food cafe serving fresh Kenyan favourites since 2024." },
       { property: "og:title", content: "About Utmost Bites" },
       { property: "og:description", content: "Fuel for the Yala Hustle since 2024." },
     ],
+    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/about" }],
   }),
   component: () => (
     <div className="mx-auto max-w-3xl px-4 py-16">

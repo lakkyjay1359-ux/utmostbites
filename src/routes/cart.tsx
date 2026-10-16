@@ -10,11 +10,15 @@ import { QtyStepper } from "@/components/site/ProductCard";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
+      { property: "og:url", content: "https://utmostbites.lovable.app/cart" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Cart & Checkout — Utmost Bites" },
       { name: "description", content: "Review your order and check out for delivery or pickup." },
       { property: "og:title", content: "Cart — Utmost Bites" },
       { property: "og:description", content: "Checkout your Utmost Bites order." },
     ],
+    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/cart" }],
   }),
   component: CartPage,
 });
