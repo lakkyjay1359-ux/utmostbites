@@ -15,6 +15,13 @@
       "when": 1792060108376,
       "tag": "0001_admin_control_room",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792137559333,
+      "tag": "0002_paid_order_numbers_and_owner_admin",
+      "breakpoints": true
     }
   ]
 }
