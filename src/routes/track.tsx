@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { trackOrder } from "@/lib/orders.functions";
-import { ksh } from "@/lib/site";
+import { formatOrderNo, ksh } from "@/lib/site";
+import { CopyButton } from "@/components/site/CopyButton";
 
 export const Route = createFileRoute("/track")({
   head: () => ({
@@ -30,17 +31,19 @@ function TrackPage() {
       <h1 className="text-3xl font-bold text-gold">Track your order</h1>
       <form className="mt-6 space-y-3" onSubmit={async (e) => {
         e.preventDefault(); setErr(""); setRes(null);
-        try { const r = await track({ data: { code, phone } }); r.found ? setRes(r.order) : setErr("No order found for that code and phone."); }
-        catch { setErr("Check your order code (e.g. UBAB12CD) and phone."); }
+        try { const r = await track({ data: { code, phone } }); r.found ? setRes(r.order) : setErr("No order found for that number and phone."); }
+        catch { setErr("Check your order number (e.g. A12) and phone."); }
       }}>
-        <input required className={input} placeholder="Order code" value={code} onChange={(e) => setCode(e.target.value)} />
+        <input required className={input} placeholder="Order number e.g. A12" value={code} onChange={(e) => setCode(e.target.value)} />
         <input required className={input} placeholder="Phone used for order" value={phone} onChange={(e) => setPhone(e.target.value)} />
         <button className="w-full rounded-full bg-gold py-3 font-bold text-primary-foreground">Check status</button>
       </form>
       {err && <p className="mt-4 text-destructive">{err}</p>}
       {res && (
         <div className="panel mt-6 p-5">
+          <div className="mb-3 flex items-center gap-3"><strong className="select-all text-3xl text-gold">{formatOrderNo(res.order_no)}</strong><CopyButton text={formatOrderNo(res.order_no)} /></div>
           <p className="text-lg">Status: <strong className="text-primary">{res.status}</strong></p>
+          {res.payment_ref && <p className="mt-2 text-sm">M-Pesa receipt: <span className="select-all">{res.payment_ref}</span></p>}
           <ul className="mt-3 text-sm">{res.order_items.map((i: any, k: number) => <li key={k}>{i.qty} × {i.name}{i.variant && ` (${i.variant})`} — {ksh(i.line_total)}</li>)}</ul>
           <p className="mt-3 font-bold">Total {ksh(res.total)}</p>
         </div>
