@@ -13,9 +13,9 @@ import { ProductCard } from "@/components/site/ProductCard";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Utmost Bites Fast Arrivals — Fuel for the Yala Hustle" },
-      { name: "description", content: "Chapati, smocha, fried chicken, smoothies and more in Yala Town, Siaya County. Order online, call or WhatsApp." },
-      { property: "og:title", content: "Utmost Bites Fast Arrivals — Yala Town" },
+      { title: "Utmost Bites and Cafe Fast Arrivals — Fuel for the Yala Hustle" },
+      { name: "description", content: "Utmost Bites and Cafe Fast Arrivals in Yala Town, Siaya County: chapati, smocha, rolex, fried chicken, smoothies and more. Order online, call or WhatsApp." },
+      { property: "og:title", content: "Utmost Bites and Cafe Fast Arrivals — Yala Town" },
       { property: "og:description", content: "Fuel for the Yala Hustle. Order online for delivery or pickup." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -40,7 +40,7 @@ function Index() {
         <div className="absolute inset-0 bg-hero-fade" />
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:py-32">
           <p className="text-xs uppercase tracking-[0.3em] text-primary">Est. {BUSINESS.established} · Yala Town</p>
-          <h1 className="mt-4 max-w-2xl text-5xl font-extrabold leading-tight text-gold sm:text-7xl">Utmost Bites Fast Arrivals</h1>
+          <h1 className="mt-4 max-w-4xl text-4xl font-extrabold uppercase leading-tight text-gold sm:text-6xl lg:text-7xl">Utmost Bites and Cafe Fast Arrivals</h1>
           <p className="mt-4 font-script text-3xl text-primary">{BUSINESS.tagline}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/menu" className="rounded-full bg-gold px-7 py-3.5 font-bold text-primary-foreground shadow-glow">Order Now</Link>
