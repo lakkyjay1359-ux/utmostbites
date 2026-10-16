@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestUrl } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const phoneRe = /^(?:\+?254|0)(7|1)\d{8}$/;
@@ -16,7 +17,7 @@ const lookupSchema = z.object({
 
 export const initiateMpesaPayment = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => lookupSchema.parse(d))
-  .handler(async ({ data, request }) => {
+  .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const phone = normalizePhone(data.phone);
     const { data: order } = await supabaseAdmin
@@ -27,7 +28,7 @@ export const initiateMpesaPayment = createServerFn({ method: "POST" })
     if (!order || order.phone !== phone) return { ok: false as const, error: "Order not found. Check the code and phone number." };
     if (order.payment_status === "paid") return { ok: false as const, error: "This order is already paid." };
 
-    const origin = new URL(request.url).origin;
+    const origin = getRequestUrl().origin;
     const { stkPush } = await import("./mpesa.server");
     try {
       const { checkoutRequestId } = await stkPush({
