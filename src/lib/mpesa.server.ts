@@ -2,7 +2,7 @@
 // Server-only: reads MPESA_* secrets from the environment inside functions.
 
 const baseUrl = () =>
-  process.env["MPESA_ENV === "production"
+  process.env["MPESA_ENV"] === "production"
     ? "https://api.safaricom.co.ke"
     : "https://sandbox.safaricom.co.ke";
 
