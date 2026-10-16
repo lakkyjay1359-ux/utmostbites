@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://utmostbites.lovable.app/sitemap.xml
+Sitemap: https://utmostbites.shop/sitemap.xml
