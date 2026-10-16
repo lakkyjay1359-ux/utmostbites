@@ -136,6 +136,21 @@ export type Database = {
           },
         ]
       }
+      order_number_counter: {
+        Row: {
+          last_no: number
+          singleton: boolean
+        }
+        Insert: {
+          last_no?: number
+          singleton?: boolean
+        }
+        Update: {
+          last_no?: number
+          singleton?: boolean
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           code: string
@@ -147,6 +162,7 @@ export type Database = {
           instructions: string | null
           location: string | null
           mpesa_checkout_request_id: string | null
+          order_no: number | null
           payment: string
           payment_ref: string | null
           payment_status: string
@@ -166,6 +182,7 @@ export type Database = {
           instructions?: string | null
           location?: string | null
           mpesa_checkout_request_id?: string | null
+          order_no?: number | null
           payment: string
           payment_ref?: string | null
           payment_status?: string
@@ -185,6 +202,7 @@ export type Database = {
           instructions?: string | null
           location?: string | null
           mpesa_checkout_request_id?: string | null
+          order_no?: number | null
           payment?: string
           payment_ref?: string | null
           payment_status?: string

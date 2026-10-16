@@ -2,11 +2,12 @@ import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ksh } from "@/lib/site";
+import { formatOrderNo, parseOrderNo, ksh } from "@/lib/site";
+import { CopyButton } from "@/components/site/CopyButton";
 import { IMAGE_KEYS, imageFor } from "@/lib/images";
 import {
   ORDER_STATUSES, PAYMENT_STATUSES, statusLabel, paymentLabel, fmtNairobi, nairobiDate,
-  periodRange, rangeToUtc, summarize, isCompletedSale, stockStatus, type Period, type SaleOrder,
+  periodRange, rangeToUtc, summarize, isSale, isOverduePayment, stockStatus, type Period, type SaleOrder,
 } from "@/lib/admin";
 
 const input = "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm";
@@ -46,7 +47,7 @@ function Table({ head, children, empty }: { head: string[]; children: ReactNode;
 }
 
 /* ---------- data ---------- */
-type Order = SaleOrder & { code: string; customer_name: string; phone: string; fulfillment: string; location: string | null; instructions: string | null; payment_ref: string | null; order_items: { name: string; variant: string | null; qty: number; unit_price: number; line_total: number }[] };
+type Order = SaleOrder & { order_no: number | null; customer_name: string; phone: string; fulfillment: string; location: string | null; instructions: string | null; payment_ref: string | null; order_items: { name: string; variant: string | null; qty: number; unit_price: number; line_total: number }[] };
 const useOrders = () => useQuery({
   queryKey: ["admin", "orders"],
   queryFn: async () => {
@@ -73,7 +74,7 @@ export function DashboardView({ onOpen }: { onOpen: (id: string) => void }) {
         <Card label="New orders" value={orders.filter((o) => o.status === "Received").length} tone="text-accent" />
         <Card label="Being prepared" value={orders.filter((o) => o.status === "Preparing").length} />
         <Card label="Completed today" value={todays.filter((o) => o.status === "Completed").length} tone="text-fresh" />
-        <Card label="Today's sales" value={ksh(todays.filter(isCompletedSale).reduce((s, o) => s + o.total, 0))} />
+        <Card label="Today's sales" value={ksh(todays.filter(isSale).reduce((s, o) => s + o.total, 0))} />
         <Card label="Low-stock items" value={(stock ?? []).filter((s) => stockStatus(s.quantity, s.min_level) !== "In Stock").length} tone="text-destructive" />
       </div>
       <h2 className="text-xl font-bold text-primary">Recent orders</h2>
@@ -87,8 +88,8 @@ function OrderTable({ orders, onOpen }: { orders: Order[]; onOpen: (id: string) 
     <Table head={["Order", "Customer", "Total", "Payment", "Status", "Date & time", ""]} empty={!orders.length}>
       {orders.map((o) => (
         <tr key={o.id}>
-          <td className={`${td} font-bold`}>{o.code}</td><td className={td}>{o.customer_name}</td><td className={td}>{ksh(o.total)}</td>
-          <td className={td}><Badge tone={payTone(o.payment_status)}>{o.payment_status}</Badge></td>
+          <td className={`${td} font-bold`}>{formatOrderNo(o.order_no)}</td><td className={td}>{o.customer_name}</td><td className={td}>{ksh(o.total)}</td>
+          <td className={td}><p>{paymentLabel(o.payment)}</p><Badge tone={payTone(o.payment_status)}>{o.payment_status}</Badge>{o.payment_ref && <p className="select-all text-xs">{o.payment_ref}</p>}</td>
           <td className={td}><Badge tone={statusTone(o.status)}>{statusLabel(o.status)}</Badge></td>
           <td className={`${td} whitespace-nowrap`}>{fmtNairobi(o.created_at)}</td>
           <td className={td}><button className={btnGhost} onClick={() => onOpen(o.id)}>View</button></td>
@@ -102,10 +103,11 @@ function OrderTable({ orders, onOpen }: { orders: Order[]; onOpen: (id: string) 
 export function OrdersView({ openId, setOpenId }: { openId: string | null; setOpenId: (id: string | null) => void }) {
   const { data: orders, isLoading, error } = useOrders();
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const qc = useQueryClient();
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
   if (error || !orders) return <p className="text-destructive">Couldn't load orders.</p>;
-  const shown = orders.filter((o) => filter === "all" || o.status === filter);
+  const shown = orders.filter((o) => (filter === "all" || o.status === filter) && (!search.trim() || o.order_no === parseOrderNo(search)));
   const open = orders.find((o) => o.id === openId);
   const update = async (id: string, patch: Record<string, string>) => {
     const { error } = await supabase.from("orders").update(patch as never).eq("id", id);
@@ -118,9 +120,11 @@ export function OrdersView({ openId, setOpenId }: { openId: string | null; setOp
       <div className="flex flex-wrap gap-2">
         {["all", ...ORDER_STATUSES].map((s) => <button key={s} onClick={() => setFilter(s)} className={`${btnGhost} ${filter === s ? "bg-primary text-primary-foreground" : ""}`}>{s === "all" ? "All" : statusLabel(s)}</button>)}
       </div>
+      <input className={input} aria-label="Search order number" placeholder="Search order number e.g. A12" value={search} onChange={(e) => setSearch(e.target.value)} />
       <OrderTable orders={shown} onOpen={setOpenId} />
       {open && (
-        <Modal title={`Order ${open.code}`} onClose={() => setOpenId(null)}>
+        <Modal title={`Order ${formatOrderNo(open.order_no)}`} onClose={() => setOpenId(null)}>
+          <div className="mb-4 flex items-center gap-3"><strong className="select-all text-3xl text-primary">{formatOrderNo(open.order_no)}</strong>{open.order_no != null && <CopyButton text={formatOrderNo(open.order_no)} />}</div>
           <dl className="grid grid-cols-3 gap-y-1 text-sm">
             <dt className="text-muted-foreground">Customer</dt><dd className="col-span-2">{open.customer_name}</dd>
             <dt className="text-muted-foreground">Phone</dt><dd className="col-span-2"><a className="underline" href={`tel:${open.phone}`}>{open.phone}</a></dd>
@@ -128,6 +132,7 @@ export function OrdersView({ openId, setOpenId }: { openId: string | null; setOp
             <dt className="text-muted-foreground">Fulfilment</dt><dd className="col-span-2 capitalize">{open.fulfillment}{open.location ? ` — ${open.location}` : ""}</dd>
             {open.instructions && <><dt className="text-muted-foreground">Notes</dt><dd className="col-span-2">{open.instructions}</dd></>}
             <dt className="text-muted-foreground">Payment</dt><dd className="col-span-2">{paymentLabel(open.payment)} · <Badge tone={payTone(open.payment_status)}>{open.payment_status}</Badge></dd>
+            <dt className="text-muted-foreground">M-Pesa receipt</dt><dd className="col-span-2 select-all">{open.payment_ref ?? "—"}</dd>
           </dl>
           <ul className="mt-4 divide-y divide-border border-y border-border text-sm">
             {open.order_items.map((i, k) => <li key={k} className="flex justify-between py-1.5"><span>{i.qty} × {i.name}{i.variant ? ` (${i.variant})` : ""}</span><span>{ksh(i.line_total)}</span></li>)}
@@ -140,7 +145,7 @@ export function OrdersView({ openId, setOpenId }: { openId: string | null; setOp
             </select></label>
           <label className="mt-3 block text-sm font-semibold">Payment status
             <select className={`${input} mt-1`} value={open.payment_status} onChange={(e) => {
-              if (e.target.value === "paid" && !confirm(`Confirm you have received ${ksh(open.total)} for ${open.code}?`)) return;
+              if (e.target.value === "paid" && !confirm(`Confirm you have received ${ksh(open.total)} for ${formatOrderNo(open.order_no)}?`)) return;
               update(open.id, { payment_status: e.target.value });
             }}>{PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}</select></label>
           <p className="mt-2 text-xs text-muted-foreground">Only mark as paid once the money has actually been received.</p>
@@ -395,10 +400,12 @@ export function SalesView() {
     queryKey: ["admin", "sales", range.from, range.to],
     queryFn: async () => {
       const u = rangeToUtc(range);
-      const { data, error } = await supabase.from("orders").select("id,code,total,status,payment,payment_status,created_at").gte("created_at", u.start).lt("created_at", u.end).order("created_at");
-      if (error) throw error; return data as (SaleOrder & { code: string })[];
+      const { data, error } = await supabase.from("orders").select("id,order_no,total,status,payment,payment_status,payment_ref,created_at").gte("created_at", u.start).lt("created_at", u.end).order("created_at");
+      if (error) throw error; return data as (SaleOrder & { order_no: number | null; payment_ref: string | null })[];
     },
   });
+  const { data: allOrders } = useOrders();
+  const overdue = (allOrders ?? []).filter((o) => isOverduePayment(o));
   const sum = summarize(data ?? []);
   const byDay = new Map<string, SaleOrder[]>();
   for (const o of data ?? []) { const d = nairobiDate(o.created_at); byDay.set(d, [...(byDay.get(d) ?? []), o]); }
@@ -406,8 +413,8 @@ export function SalesView() {
 
   const exportCsv = () => {
     const esc = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`;
-    const lines = [["Order", "Date (Nairobi)", "Total KSh", "Status", "Payment method", "Payment status", "Counts as completed sale"].map(esc).join(",")];
-    for (const o of data ?? []) lines.push([o.code, fmtNairobi(o.created_at), o.total, statusLabel(o.status), paymentLabel(o.payment), o.payment_status, isCompletedSale(o) ? "yes" : "no"].map(esc).join(","));
+    const lines = [["Order", "Date (Nairobi)", "Total KSh", "Status", "Payment method", "Payment status", "Counts as sale", "M-Pesa receipt"].map(esc).join(",")];
+    for (const o of data ?? []) lines.push([formatOrderNo(o.order_no), fmtNairobi(o.created_at), o.total, statusLabel(o.status), paymentLabel(o.payment), o.payment_status, isSale(o) ? "yes" : "no", o.payment_ref ?? ""].map(esc).join(","));
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" }));
     a.download = `utmost-bites-sales-${range.from}_to_${range.to}.csv`; a.click(); URL.revokeObjectURL(a.href);
@@ -422,16 +429,25 @@ export function SalesView() {
         {period === "custom" && <input type="date" aria-label="To date" className={`${input} w-auto`} value={to} onChange={(e) => e.target.value && setTo(e.target.value)} />}
         <button className={btn} onClick={exportCsv} disabled={!data?.length}>Export CSV</button>
       </div>
-      <p className="text-sm text-muted-foreground">{range.from === range.to ? range.from : `${range.from} to ${range.to}`} · Nairobi time. Completed sales = orders marked Completed with payment received.</p>
+      <p className="text-sm text-muted-foreground">{range.from === range.to ? range.from : `${range.from} to ${range.to}`} · Nairobi time. Sales = paid orders excluding cancelled orders; refunded, pending and failed payments never count.</p>
       {isLoading ? <p className="text-muted-foreground">Loading…</p> : error ? <p className="text-destructive">Couldn't load sales.</p> : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-            <Card label="Completed sales" value={ksh(sum.revenue)} tone="text-fresh" />
+            <Card label="Sales" value={ksh(sum.revenue)} tone="text-fresh" />
             <Card label="Orders" value={sum.orders} /><Card label="Completed" value={sum.completed} />
+            <Card label="Paid" value={sum.paid} /><Card label="Pending" value={sum.pending} /><Card label="Failed" value={sum.failed} tone="text-destructive" />
             <Card label="Cancelled" value={sum.cancelled} tone="text-destructive" /><Card label="Average order" value={ksh(sum.average)} />
           </div>
           {!!Object.keys(sum.byMethod).length && <p className="text-sm">By payment method: {Object.entries(sum.byMethod).map(([m, v]) => `${paymentLabel(m)} ${ksh(v)}`).join(" · ")}</p>}
-          <Table head={["Date", "Orders", "Completed sales", "Payment"]} empty={!rows.length}>
+          <h2 className="text-xl font-bold text-primary">Pending payment over 10 minutes</h2>
+          <Table head={["Order", "Customer", "Amount", "Payment", "Placed"]} empty={!overdue.length}>
+            {overdue.map((o) => <tr key={o.id}><td className={td}>{formatOrderNo(o.order_no)}</td><td className={td}>{o.customer_name}</td><td className={td}>{ksh(o.total)}</td><td className={td}>{paymentLabel(o.payment)}</td><td className={td}>{fmtNairobi(o.created_at)}</td></tr>)}
+          </Table>
+          <h2 className="text-xl font-bold text-primary">Orders in this period</h2>
+          <Table head={["Order", "Amount", "Payment", "Receipt", "Status"]} empty={!data?.length}>
+            {(data ?? []).map((o) => <tr key={o.id}><td className={td}>{formatOrderNo(o.order_no)}</td><td className={td}>{ksh(o.total)}</td><td className={td}>{paymentLabel(o.payment)} · {o.payment_status}</td><td className={td}>{o.payment_ref ?? "—"}</td><td className={td}>{statusLabel(o.status)}</td></tr>)}
+          </Table>
+          <Table head={["Date", "Orders", "Sales", "Payment"]} empty={!rows.length}>
             {rows.map((r) => <tr key={r.d}><td className={td}>{r.d}</td><td className={td}>{r.orders}</td><td className={td}>{ksh(r.revenue)}</td>
               <td className={td}>{Object.entries(r.byMethod).map(([m, v]) => `${paymentLabel(m)} ${ksh(v)}`).join(" · ") || "—"}</td></tr>)}
           </Table>

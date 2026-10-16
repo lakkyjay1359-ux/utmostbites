@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { ksh, whatsappHref } from "@/lib/site";
+import { formatOrderNo, ksh, whatsappHref } from "@/lib/site";
+import { CopyButton } from "@/components/site/CopyButton";
 import { placeOrder } from "@/lib/orders.functions";
 import { initiateMpesaPayment, mpesaPaymentStatus } from "@/lib/mpesa.functions";
 import { QtyStepper } from "@/components/site/ProductCard";
@@ -32,8 +33,24 @@ function CartPage() {
   const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", location: "", instructions: "", payment: "cash" as "cash" | "mpesa_on_delivery" | "mpesa" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [done, setDone] = useState<{ code: string; total: number } | null>(null);
+  const [done, setDone] = useState<{ code: string; total: number; orderNo: number | null; receipt: string | null; lines: { name: string; variant: string | null; qty: number; line_total: number }[] } | null>(null);
   const [mpesa, setMpesa] = useState<"idle" | "pushing" | "waiting" | "paid" | "failed">("idle");
+
+  // Keep pending cash orders and slow callbacks up to date without creating a number early.
+  useEffect(() => {
+    if (!done || done.orderNo != null) return;
+    let stopped = false;
+    const timer = setInterval(async () => {
+      try {
+        const s = await checkPaid({ data: { code: done.code, phone: f.phone } });
+        if (!stopped && s.found && s.paymentStatus === "paid" && s.orderNo != null) {
+          setDone((d) => d ? { ...d, orderNo: s.orderNo, receipt: s.receipt } : d);
+          if (f.payment === "mpesa") setMpesa("paid");
+        }
+      } catch { /* Retry on the next poll. */ }
+    }, 5000);
+    return () => { stopped = true; clearInterval(timer); };
+  }, [done?.code, done?.orderNo, f.phone, f.payment, checkPaid]);
 
   const summary = [
     "Hi Utmost Bites! My order:",
@@ -45,8 +62,16 @@ function CartPage() {
 
   if (done) return (
     <div className="mx-auto max-w-xl px-4 py-16 text-center">
-      <h1 className="text-3xl font-bold text-gold">Order received!</h1>
-      <p className="mt-4">Your order code is <strong className="text-primary">{done.code}</strong> · Total {ksh(done.total)}</p>
+      <h1 className="text-3xl font-bold text-gold">{done.orderNo != null ? "Order confirmed!" : "Order received!"}</h1>
+      {done.orderNo != null ? <div className="mt-4 flex flex-wrap items-center justify-center gap-3"><strong className="select-all text-4xl text-primary">{formatOrderNo(done.orderNo)}</strong><CopyButton text={formatOrderNo(done.orderNo)} /></div> : <p className="mt-4 text-muted-foreground">Your order number will appear when payment is received.</p>}
+      <p className="mt-4">Total {ksh(done.total)}</p>
+      {done.receipt && <p className="mt-2 text-sm">M-Pesa receipt: <span className="select-all">{done.receipt}</span></p>}
+      {done.orderNo != null && <div className="mt-4"><CopyButton label="Copy order details" text={[
+        `Order ${formatOrderNo(done.orderNo)}`,
+        ...done.lines.map((i) => `${i.qty} × ${i.name}${i.variant ? ` (${i.variant})` : ""} — ${ksh(i.line_total)}`),
+        `Total: ${ksh(done.total)}`,
+        `M-Pesa receipt: ${done.receipt ?? "Not applicable"}`,
+      ].join("\n")} /></div>}
       {f.payment === "mpesa" ? (
         <div className="mt-4">
           {mpesa === "paid" ? (
@@ -60,7 +85,7 @@ function CartPage() {
           )}
         </div>
       ) : (
-        <p className="mt-2 text-sm text-muted-foreground">Pay on {f.fulfillment === "delivery" ? "delivery" : "pickup"}. Save your code to track your order.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Pay on {f.fulfillment === "delivery" ? "delivery" : "pickup"}. Your number is assigned after payment.</p>
       )}
       <Link to="/track" className="mt-6 inline-block rounded-full bg-gold px-6 py-3 font-bold text-primary-foreground">Track order</Link>
     </div>
@@ -78,7 +103,7 @@ function CartPage() {
     try {
       const r = await submit({ data: { ...f, items: cart.items.map((i) => ({ type: i.type, id: i.id, variant: i.variant, qty: i.qty })) } });
       if (r.ok) {
-        setDone({ code: r.code, total: r.total }); cart.clear();
+        setDone({ code: r.code, total: r.total, lines: r.lines, orderNo: null, receipt: null }); cart.clear();
         if (f.payment === "mpesa") {
           setMpesa("pushing");
           const p = await payMpesa({ data: { code: r.code, phone: f.phone } });
@@ -87,7 +112,7 @@ function CartPage() {
           for (let i = 0; i < 20; i++) {
             await new Promise((res) => setTimeout(res, 5000));
             const s = await checkPaid({ data: { code: r.code, phone: f.phone } });
-            if (s.found && s.paymentStatus === "paid") { setMpesa("paid"); return; }
+            if (s.found && s.paymentStatus === "paid") { setDone((d) => d ? { ...d, orderNo: s.orderNo, receipt: s.receipt } : d); setMpesa("paid"); return; }
             if (s.found && s.paymentStatus === "failed") { setMpesa("failed"); return; }
           }
           setMpesa("failed");
