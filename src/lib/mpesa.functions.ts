@@ -59,9 +59,9 @@ export const mpesaPaymentStatus = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: order } = await supabaseAdmin
       .from("orders")
-      .select("phone, payment_status, payment_ref")
+      .select("phone, payment_status, payment_ref, order_no")
       .eq("code", data.code)
       .maybeSingle();
     if (!order || order.phone !== normalizePhone(data.phone)) return { found: false as const };
-    return { found: true as const, paymentStatus: order.payment_status, receipt: order.payment_ref };
+    return { found: true as const, paymentStatus: order.payment_status, receipt: order.payment_ref, orderNo: order.order_no };
   });

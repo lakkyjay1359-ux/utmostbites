@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { parseOrderNo } from "./site";
 
 const phoneRe = /^(?:\+?254|0)(7|1)\d{8}$/;
 const normalizePhone = (p: string) => {
@@ -89,14 +90,14 @@ export const placeOrder = createServerFn({ method: "POST" })
 
 export const trackOrder = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({
-    code: z.string().trim().toUpperCase().regex(/^UB[A-Z0-9]{4,8}$/, "Invalid order code"),
+    code: z.string().trim().refine((s) => parseOrderNo(s) !== null, "Invalid order number"),
     phone: z.string().trim().regex(phoneRe, "Enter the phone used for the order"),
   }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: o } = await supabaseAdmin.from("orders")
-      .select("id, code, status, total, fulfillment, created_at, updated_at, phone, order_items(name, variant, qty, line_total)")
-      .eq("code", data.code).maybeSingle();
+      .select("id, order_no, status, total, fulfillment, payment_ref, payment_status, created_at, updated_at, phone, order_items(name, variant, qty, line_total)")
+      .eq("order_no", parseOrderNo(data.code) ?? 0).eq("phone", normalizePhone(data.phone)).maybeSingle();
     if (!o || o.phone !== normalizePhone(data.phone)) return { found: false as const };
     const { phone: _p, id: _id, ...rest } = o;
     return { found: true as const, order: rest };

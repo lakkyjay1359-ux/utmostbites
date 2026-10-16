@@ -80,7 +80,6 @@ export function SiteFooter() {
             <li><Link to="/combos" className="hover:text-primary">Combos</Link></li>
             <li><Link to="/about" className="hover:text-primary">About</Link></li>
             <li><Link to="/track" className="hover:text-primary">Track Order</Link></li>
-            <li><Link to="/admin" className="hover:text-primary">Staff login</Link></li>
           </ul>
         </div>
         <div>

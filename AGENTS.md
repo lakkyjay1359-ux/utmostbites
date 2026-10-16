@@ -10,5 +10,8 @@
 <!-- LOVABLE:END -->
 
 ## Project rules
-- Admin sales/period maths lives in src/lib/admin.ts (Nairobi UTC+3; completed sale = status Completed AND payment_status paid) — one definition shared by dashboard, reports and tests.
+- Admin sales/period maths lives in src/lib/admin.ts (Nairobi UTC+3; sale = payment_status paid AND status not Cancelled) — one definition shared by dashboard, reports and tests.
+- Allocate immutable integer order numbers on the first non-cancelled paid transition using a transactional database counter, not a sequence, so failed transactions consume no numbers; format all public numbers through src/lib/site.ts.
+- Clipboard controls share CopyButton with a browser fallback so confirmation, tracking and admin behave consistently.
+- Admin role grants and checks are enforced in the database against the verified owner's email, including auth lifecycle changes, so no browser or stale role row can bypass access restrictions.
 - Stock deduction/restoration on order status change is done by the orders_stock_sync DB trigger, so it can't double-run from the UI.

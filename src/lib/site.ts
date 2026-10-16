@@ -16,3 +16,12 @@ export function whatsappHref(message?: string) {
 }
 
 export const ksh = (n: number) => `KSh ${n.toLocaleString("en-KE")}`;
+
+export const formatOrderNo = (n: number | null | undefined) => n == null ? "Awaiting payment" : `A${n}`;
+
+export function parseOrderNo(value: string): number | null {
+  const match = /^(?:a|#)?([1-9]\d*)$/i.exec(value.trim());
+  if (!match) return null;
+  const n = Number(match[1]);
+  return Number.isSafeInteger(n) && n <= 2147483647 ? n : null;
+}
