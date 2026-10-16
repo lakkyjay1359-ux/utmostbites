@@ -5,6 +5,7 @@ import { Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { ksh, whatsappHref } from "@/lib/site";
 import { placeOrder } from "@/lib/orders.functions";
+import { initiateMpesaPayment, mpesaPaymentStatus } from "@/lib/mpesa.functions";
 import { QtyStepper } from "@/components/site/ProductCard";
 
 export const Route = createFileRoute("/cart")({
@@ -26,10 +27,13 @@ export const Route = createFileRoute("/cart")({
 function CartPage() {
   const cart = useCart();
   const submit = useServerFn(placeOrder);
-  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", location: "", instructions: "", payment: "cash" as "cash" | "mpesa_on_delivery" });
+  const payMpesa = useServerFn(initiateMpesaPayment);
+  const checkPaid = useServerFn(mpesaPaymentStatus);
+  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", location: "", instructions: "", payment: "cash" as "cash" | "mpesa_on_delivery" | "mpesa" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ code: string; total: number } | null>(null);
+  const [mpesa, setMpesa] = useState<"idle" | "pushing" | "waiting" | "paid" | "failed">("idle");
 
   const summary = [
     "Hi Utmost Bites! My order:",
