@@ -1,20 +1,20 @@
-import chapati from "@/assets/food/chapati.jpg";
-import mandazi from "@/assets/food/mandazi.jpg";
-import samosa from "@/assets/food/samosa.jpg";
-import samosaMeat from "@/assets/food/samosa-meat.jpg";
-import kebab from "@/assets/food/kebab.jpg";
-import smokies from "@/assets/food/smokies.jpg";
-import eggs from "@/assets/food/eggs.jpg";
-import smocha from "@/assets/food/smocha.jpg";
-import tea from "@/assets/food/tea.jpg";
-import chips from "@/assets/food/chips.jpg";
-import friedChicken from "@/assets/food/fried-chicken.jpg";
-import rawChicken from "@/assets/food/raw-chicken.jpg";
-import beans from "@/assets/food/beans.jpg";
-import smoothie from "@/assets/food/smoothie.jpg";
-import comboMorning from "@/assets/food/combo-morning.jpg";
-import comboEvening from "@/assets/food/combo-evening.jpg";
-import hero from "@/assets/food/hero.jpg";
+import chapati from "@/assets/food/chapati.webp";
+import mandazi from "@/assets/food/mandazi.webp";
+import samosa from "@/assets/food/samosa.webp";
+import samosaMeat from "@/assets/food/samosa-meat.webp";
+import kebab from "@/assets/food/kebab.webp";
+import smokies from "@/assets/food/smokies.webp";
+import eggs from "@/assets/food/eggs.webp";
+import smocha from "@/assets/food/smocha.webp";
+import tea from "@/assets/food/tea.webp";
+import chips from "@/assets/food/chips.webp";
+import friedChicken from "@/assets/food/fried-chicken.webp";
+import rawChicken from "@/assets/food/raw-chicken.webp";
+import beans from "@/assets/food/beans.webp";
+import smoothie from "@/assets/food/smoothie.webp";
+import comboMorning from "@/assets/food/combo-morning.webp";
+import comboEvening from "@/assets/food/combo-evening.webp";
+import hero from "@/assets/food/hero.webp";
 
 export const IMAGES: Record<string, string> = {
   chapati, mandazi, samosa, "samosa-meat": samosaMeat, kebab, smokies, eggs, smocha,

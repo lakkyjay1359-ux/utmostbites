@@ -7,11 +7,15 @@ import { ksh } from "@/lib/site";
 export const Route = createFileRoute("/track")({
   head: () => ({
     meta: [
+      { property: "og:url", content: "https://utmostbites.lovable.app/track" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Track Order — Utmost Bites" },
       { name: "description", content: "Check the status of your Utmost Bites order." },
       { property: "og:title", content: "Track your order" },
       { property: "og:description", content: "Enter your order code and phone number." },
     ],
+    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/track" }],
   }),
   component: TrackPage,
 });

@@ -28,7 +28,7 @@ export function ProductCard({ product, fresh }: { product: Product; fresh?: bool
   return (
     <article className={`group flex flex-col overflow-hidden panel ${fresh ? "border-fresh/60" : ""}`}>
       <div className="relative aspect-[4/3] overflow-hidden">
-        <img src={imageFor(product.image_key)} alt={product.name} loading="lazy" width={816} height={816}
+        <img src={imageFor(product.image_key)} alt={product.name} loading="lazy" decoding="async" width={800} height={800}
           className={`h-full w-full object-cover transition duration-500 group-hover:scale-105 ${product.available ? "" : "grayscale"}`} />
         <span className={`absolute right-3 top-3 rounded-full px-3 py-1 text-sm font-bold ${fresh ? "bg-fresh text-fresh-foreground" : "bg-gold text-primary-foreground"}`}>
           {ksh(price)}

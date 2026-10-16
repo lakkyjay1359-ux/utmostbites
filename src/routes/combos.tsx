@@ -6,11 +6,15 @@ import { ComboCard } from "@/components/site/ComboCard";
 export const Route = createFileRoute("/combos")({
   head: () => ({
     meta: [
+      { property: "og:url", content: "https://utmostbites.lovable.app/combos" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Combos — Utmost Bites Fast Arrivals" },
       { name: "description", content: "Morning Combo KSh 150 and Evening Combo KSh 260 in Yala Town." },
       { property: "og:title", content: "Combos — Utmost Bites" },
       { property: "og:description", content: "Great-value meal combos for every part of your day." },
     ],
+    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/combos" }],
   }),
   component: CombosPage,
 });

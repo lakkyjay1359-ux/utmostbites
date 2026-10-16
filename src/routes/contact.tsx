@@ -4,11 +4,15 @@ import { BUSINESS, telHref, whatsappHref } from "@/lib/site";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
+      { property: "og:url", content: "https://utmostbites.lovable.app/contact" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Contact — Utmost Bites Fast Arrivals" },
       { name: "description", content: "Call or WhatsApp 0794 567 401 to order from Utmost Bites in Yala Town." },
       { property: "og:title", content: "Contact Utmost Bites" },
       { property: "og:description", content: "Call or WhatsApp us to order." },
     ],
+    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/contact" }],
   }),
   component: () => (
     <div className="mx-auto max-w-3xl px-4 py-16 text-center">
