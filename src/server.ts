@@ -44,9 +44,21 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+let bootstrapStarted = false;
+function bootstrapOnce(ctx: unknown) {
+  if (bootstrapStarted) return;
+  bootstrapStarted = true;
+  const p = import("./lib/admin-bootstrap.server")
+    .then((m) => m.runAdminBootstrap())
+    .catch((e) => { bootstrapStarted = false; console.error(e); });
+  const c = ctx as { waitUntil?: (p: Promise<unknown>) => void } | null;
+  c?.waitUntil?.(p);
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      bootstrapOnce(ctx);
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
