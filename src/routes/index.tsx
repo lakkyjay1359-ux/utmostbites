@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Phone } from "lucide-react";
-import heroShop from "@/assets/food/hero-serving.jpg";
+import hero640 from "@/assets/food/hero-serving-640.webp";
+import hero1024 from "@/assets/food/hero-serving-1024.webp";
+import hero1600 from "@/assets/food/hero-serving-1600.webp";
+
+const HERO_SRCSET = `${hero640} 640w, ${hero1024} 1024w, ${hero1600} 1600w`;
 import { BUSINESS, telHref } from "@/lib/site";
 import { menuQuery } from "@/lib/menu";
 import { ProductCard } from "@/components/site/ProductCard";
@@ -15,6 +19,11 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Fuel for the Yala Hustle. Order online for delivery or pickup." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:url", content: "https://utmostbites.lovable.app/" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://utmostbites.lovable.app/" },
+      { rel: "preload", as: "image", href: hero1600, imageSrcSet: HERO_SRCSET, imageSizes: "100vw", fetchPriority: "high" },
     ],
   }),
   component: Index,
@@ -28,7 +37,7 @@ function Index() {
   return (
     <>
       <section className="relative overflow-hidden border-b-2 border-accent">
-        <img src={heroShop} alt="Young man in an Utmost Bites T-shirt serving customers at the shop counter" width={1600} height={1000} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={hero1600} srcSet={HERO_SRCSET} sizes="100vw" fetchPriority="high" loading="eager" decoding="async" alt="Young man in an Utmost Bites T-shirt serving customers at the shop counter" width={1600} height={1073} className="absolute inset-0 h-full w-full bg-espresso object-cover" />
         <div className="absolute inset-0 bg-hero-fade" />
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:py-32">
           <p className="text-xs uppercase tracking-[0.3em] text-primary">Est. {BUSINESS.established} · Yala Town</p>

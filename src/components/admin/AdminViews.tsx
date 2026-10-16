@@ -182,7 +182,7 @@ export function MenuView() {
       <Table head={["Photo", "Product", "Category", "Price", "Available", ""]}>
         {data.prods.map((p) => (
           <tr key={p.id}>
-            <td className={td}><img src={imageFor(p.image_key)} alt="" className="h-10 w-10 rounded object-cover" /></td>
+            <td className={td}><img src={imageFor(p.image_key)} alt="" width={40} height={40} loading="lazy" decoding="async" className="h-10 w-10 rounded object-cover" /></td>
             <td className={`${td} font-semibold`}>{p.name}</td>
             <td className={td}>{data.cats.find((c) => c.id === p.category_id)?.name ?? "—"}</td>
             <td className={td}>{p.variants?.length ? p.variants.map((v) => `${v.label} ${ksh(v.price)}`).join(" · ") : ksh(p.price)}</td>
@@ -239,7 +239,7 @@ function ProductForm({ p, cats, stock, ingr, onClose, onSaved }: { p: Prod; cats
         <label className="block">Category<select className={input} value={f.category_id ?? ""} onChange={(e) => setF({ ...f, category_id: e.target.value })}>{cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
         <div>Photo
           <div className="mt-1 grid grid-cols-6 gap-2">{IMAGE_KEYS.map((k) => (
-            <button type="button" key={k} onClick={() => setF({ ...f, image_key: k })} className={`overflow-hidden rounded border-2 ${f.image_key === k ? "border-primary" : "border-transparent"}`}><img src={imageFor(k)} alt={k} className="aspect-square w-full object-cover" /></button>
+            <button type="button" key={k} onClick={() => setF({ ...f, image_key: k })} className={`overflow-hidden rounded border-2 ${f.image_key === k ? "border-primary" : "border-transparent"}`}><img src={imageFor(k)} alt={k} width={80} height={80} loading="lazy" decoding="async" className="aspect-square w-full object-cover" /></button>
           ))}</div></div>
         <label className="flex items-center gap-2"><input type="checkbox" checked={f.available} onChange={(e) => setF({ ...f, available: e.target.checked })} /> Available to order</label>
         <button className={btn} disabled={busy} onClick={save}>{busy ? "Saving…" : "Save"}</button>
