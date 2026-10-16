@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/lib/cart";
 import { BUSINESS, telHref, whatsappHref } from "@/lib/site";
 import { hoursQuery } from "@/lib/menu";
+import logo from "@/assets/logo.webp";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -21,9 +22,12 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-accent/40 bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
-        <Link to="/" className="flex flex-col leading-none" onClick={() => setOpen(false)}>
-          <span className="font-display text-lg font-bold tracking-wide text-gold sm:text-xl">UTMOST BITES</span>
-          <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Fast Arrivals · Est. 2024</span>
+        <Link to="/" className="flex items-center gap-2 leading-none" onClick={() => setOpen(false)}>
+          <img src={logo} alt="Utmost Bites logo" width={44} height={44} className="h-11 w-11 object-contain" />
+          <span className="flex flex-col">
+            <span className="font-display text-lg font-bold tracking-wide text-gold sm:text-xl">UTMOST BITES</span>
+            <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Fast Arrivals · Est. 2024</span>
+          </span>
         </Link>
         <nav className="hidden items-center gap-6 lg:flex">
           {NAV.map((n) => (
