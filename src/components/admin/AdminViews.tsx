@@ -48,7 +48,7 @@ function Table({ head, children, empty }: { head: string[]; children: ReactNode;
 }
 
 /* ---------- data ---------- */
-type Order = SaleOrder & { order_no: number | null; customer_name: string; phone: string; fulfillment: string; location: string | null; instructions: string | null; payment_ref: string | null; order_items: { name: string; variant: string | null; qty: number; unit_price: number; line_total: number }[] };
+type Order = SaleOrder & { order_no: number | null; customer_name: string; phone: string; fulfillment: string; location: string | null; instructions: string | null; payment_ref: string | null; source: string; order_items: { name: string; variant: string | null; qty: number; unit_price: number; line_total: number }[] };
 const useOrders = () => useQuery({
   queryKey: ["admin", "orders"],
   queryFn: async () => {
@@ -90,7 +90,7 @@ function OrderTable({ orders, onOpen }: { orders: Order[]; onOpen: (id: string) 
     <Table head={["Order", "Customer", "Total", "Payment", "Status", "Date & time", ""]} empty={!orders.length}>
       {orders.map((o) => (
         <tr key={o.id}>
-          <td className={`${td} font-bold`}>{formatOrderNo(o.order_no)}</td><td className={td}>{o.customer_name}</td><td className={td}>{ksh(o.total)}</td>
+          <td className={`${td} font-bold`}>{formatOrderNo(o.order_no)}{o.source === "pos" && <> <Badge tone="border-primary text-primary">Walk-in</Badge></>}</td><td className={td}>{o.customer_name}</td><td className={td}>{ksh(o.total)}</td>
           <td className={td}><p>{paymentLabel(o.payment)}</p><Badge tone={payTone(o.payment_status)}>{o.payment_status}</Badge>{o.payment_ref && <p className="select-all text-xs">{o.payment_ref}</p>}</td>
           <td className={td}><Badge tone={statusTone(o.status)}>{statusLabel(o.status)}</Badge></td>
           <td className={`${td} whitespace-nowrap`}>{fmtNairobi(o.created_at)}</td>
@@ -111,11 +111,12 @@ function OrderTable({ orders, onOpen }: { orders: Order[]; onOpen: (id: string) 
 export function OrdersView({ openId, setOpenId }: { openId: string | null; setOpenId: (id: string | null) => void }) {
   const { data: orders, isLoading, error } = useOrders();
   const [filter, setFilter] = useState("all");
+  const [source, setSource] = useState<"all" | "online" | "pos">("all");
   const [search, setSearch] = useState("");
   const qc = useQueryClient();
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
   if (error || !orders) return <p className="text-destructive">Couldn't load orders.</p>;
-  const shown = orders.filter((o) => (filter === "all" || o.status === filter) && (!search.trim() || o.order_no === parseOrderNo(search)));
+  const shown = orders.filter((o) => (filter === "all" || o.status === filter) && (source === "all" || o.source === source) && (!search.trim() || o.order_no === parseOrderNo(search)));
   const open = orders.find((o) => o.id === openId);
   const update = async (id: string, patch: Record<string, string>) => {
     const { error } = await supabase.from("orders").update(patch as never).eq("id", id);
@@ -127,6 +128,8 @@ export function OrdersView({ openId, setOpenId }: { openId: string | null; setOp
       <p className="text-sm text-muted-foreground">New orders appear here automatically.</p>
       <div className="flex flex-wrap gap-2">
         {["all", ...ORDER_STATUSES].map((s) => <button key={s} onClick={() => setFilter(s)} className={`${btnGhost} ${filter === s ? "bg-primary text-primary-foreground" : ""}`}>{s === "all" ? "All" : statusLabel(s)}</button>)}
+        <span className="mx-1 border-l border-border" />
+        {([["all", "All sources"], ["online", "Online"], ["pos", "Walk-in"]] as const).map(([v, l]) => <button key={v} onClick={() => setSource(v)} className={`${btnGhost} ${source === v ? "bg-primary text-primary-foreground" : ""}`}>{l}</button>)}
       </div>
       <input className={input} aria-label="Search order number" placeholder="Search order number e.g. A12" value={search} onChange={(e) => setSearch(e.target.value)} />
       <OrderTable orders={shown} onOpen={setOpenId} />
@@ -418,8 +421,8 @@ export function SalesView() {
     queryKey: ["admin", "sales", range.from, range.to],
     queryFn: async () => {
       const u = rangeToUtc(range);
-      const { data, error } = await supabase.from("orders").select("id,order_no,total,status,payment,payment_status,payment_ref,created_at").gte("created_at", u.start).lt("created_at", u.end).order("created_at");
-      if (error) throw error; return data as (SaleOrder & { order_no: number | null; payment_ref: string | null })[];
+      const { data, error } = await supabase.from("orders").select("id,order_no,total,status,payment,payment_status,payment_ref,created_at,source").gte("created_at", u.start).lt("created_at", u.end).order("created_at");
+      if (error) throw error; return data as (SaleOrder & { order_no: number | null; payment_ref: string | null; source: string })[];
     },
   });
   const { data: allOrders } = useOrders();
@@ -457,6 +460,12 @@ export function SalesView() {
             <Card label="Cancelled" value={sum.cancelled} tone="text-destructive" /><Card label="Average order" value={ksh(sum.average)} />
           </div>
           {!!Object.keys(sum.byMethod).length && <p className="text-sm">By payment method: {Object.entries(sum.byMethod).map(([m, v]) => `${paymentLabel(m)} ${ksh(v)}`).join(" · ")}</p>}
+          {(() => {
+            const sold = (data ?? []).filter(isSale);
+            const walkin = sold.filter((o) => o.source === "pos").reduce((s, o) => s + o.total, 0);
+            const online = sold.filter((o) => o.source !== "pos").reduce((s, o) => s + o.total, 0);
+            return <p className="text-sm">Walk-in {ksh(walkin)} · Online {ksh(online)}</p>;
+          })()}
           <h2 className="text-xl font-bold text-primary">Pending payment over 10 minutes</h2>
           <Table head={["Order", "Customer", "Amount", "Payment", "Placed"]} empty={!overdue.length}>
             {overdue.map((o) => <tr key={o.id}><td className={td}>{formatOrderNo(o.order_no)}</td><td className={td}>{o.customer_name}</td><td className={td}>{ksh(o.total)}</td><td className={td}>{paymentLabel(o.payment)}</td><td className={td}>{fmtNairobi(o.created_at)}</td></tr>)}
