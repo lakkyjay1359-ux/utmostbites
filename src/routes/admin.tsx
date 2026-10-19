@@ -97,8 +97,8 @@ function ControlRoom({ onLogout }: { onLogout: () => void }) {
         qc.invalidateQueries({ queryKey: ["admin"] });
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders" }, (p) => {
-        const o = p.new as { order_no: number | null; customer_name: string; total: number };
-        if (o.order_no != null && p.old['order_no'] == null) toast.success(`Paid order ${formatOrderNo(o.order_no)} — ${o.customer_name} · ${ksh(o.total)}`);
+        const o = p.new as { order_no: number | null; customer_name: string; total: number; source?: string };
+        if (o.source !== "pos" && o.order_no != null && p.old['order_no'] == null) toast.success(`Paid order ${formatOrderNo(o.order_no)} — ${o.customer_name} · ${ksh(o.total)}`);
         qc.invalidateQueries({ queryKey: ["admin"] });
       })
       .subscribe();
