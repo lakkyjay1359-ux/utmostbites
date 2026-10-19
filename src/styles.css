@@ -101,8 +101,8 @@
 .delivery-announcement { overflow: hidden; }
 .delivery-announcement-text { display: block; width: max-content; white-space: nowrap; animation: delivery-travel 18s linear infinite; }
 @keyframes delivery-travel {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100vw); }
+  from { transform: translateX(100vw); }
+  to { transform: translateX(-100%); }
 }
 @media (prefers-reduced-motion: reduce) {
   .delivery-announcement-text { animation: none; width: auto; white-space: normal; padding-inline: 1rem; text-align: center; }
