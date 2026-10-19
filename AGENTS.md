@@ -15,3 +15,4 @@
 - Clipboard controls share CopyButton with a browser fallback so confirmation, tracking and admin behave consistently.
 - Admin role grants and checks are enforced in the database against the verified owner's email, including auth lifecycle changes, so no browser or stale role row can bypass access restrictions.
 - Stock deduction/restoration on order status change is done by the orders_stock_sync DB trigger, so it can't double-run from the UI.
+- Order deletion uses failed-only owner RLS; manual stock-movement deletion uses a transactional owner-checked RPC that reverses its quantity change, protecting order-generated movements.
