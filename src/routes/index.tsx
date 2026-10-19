@@ -35,8 +35,8 @@ function Index() {
   const popular = POPULAR.map((k) => data?.products.find((p) => p.image_key === k)).filter(Boolean) as NonNullable<typeof data>["products"];
   return (
     <>
-      <div className="delivery-announcement border-b border-accent bg-espresso py-3 text-sm font-bold text-primary" aria-label="WE DELIVER GOODS WORTH KSH 100 PAST YALA TOWN.">
-        <span aria-hidden="true" className="delivery-announcement-text">WE DELIVER GOODS WORTH KSH 100 PAST YALA TOWN.</span>
+      <div className="delivery-announcement border-b border-accent bg-espresso py-3 text-sm font-bold text-primary" aria-label="WE DELIVER GOODS WORTH KSH 100 AND ABOVE PAST YALA TOWN.">
+        <span aria-hidden="true" className="delivery-announcement-text">WE DELIVER GOODS WORTH KSH 100 AND ABOVE PAST YALA TOWN.</span>
       </div>
       <section className="relative overflow-hidden border-b-2 border-accent">
         <img src={hero1600} srcSet={HERO_SRCSET} sizes="100vw" fetchPriority="high" loading="eager" decoding="async" alt="Young man in an Utmost Bites T-shirt serving customers at the shop counter" width={1600} height={1073} className="absolute inset-0 h-full w-full bg-espresso object-cover" />
