@@ -43,6 +43,13 @@
       "when": 1792387647281,
       "tag": "0005_pos_walkin_sales",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792387685257,
+      "tag": "0006_fix_pos_sale_customer_name",
+      "breakpoints": true
     }
   ]
 }
