@@ -10,4 +10,5 @@
 - [x] Verify real paid-order tracking in all four input formats, clipboard/fallback/reset, wrong-phone rejection and authenticated non-owner rejection.
 - [ ] Verify owner-only admin views and exports: blocked until the owner has a verified account.
 - [ ] Verify a new live paid checkout: requires the customer's phone/PIN and publication; no payment was initiated during verification.
-- [ ] Existing routing test suite has two failures unrelated to the number and sales tests.
+- [ ] Existing routing test suite has two failures unrelated to the number and sales tests.- [x] Add Point of Sale tab to the Control Room: search-to-add sale flow, variants, cash/M-Pesa with change due, printable receipt, today's walk-in list, Walk-in badge and source filter in Orders, walk-in vs online split in Sales Reports.
+- [x] Fix the long-broken routing tests (full-document shell cannot paint in a test container; now assert resolved router state). All 31 tests pass.
