@@ -29,6 +29,13 @@
       "when": 1792140844268,
       "tag": "0003_admin_bootstrap",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792385797281,
+      "tag": "0004_admin_failed_order_and_stock_deletion",
+      "breakpoints": true
     }
   ]
 }
