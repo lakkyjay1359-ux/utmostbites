@@ -1,4 +1,5 @@
 # Requested updates
+- [ ] Reuse deleted failed-sale numbers for new sales only, skip occupied numbers, and verify transactionally without changing real receipts.
 - [x] Add failed-payment order deletion and stock deletion controls with owner-only protection.
 - [x] Reverse the repeating delivery announcement to move right to left (verified in the browser).
 - [x] Replace Smoothie with KFC mtaani at KSh 350 using the uploaded photo.
