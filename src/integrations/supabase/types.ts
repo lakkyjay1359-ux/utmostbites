@@ -453,6 +453,10 @@ export type Database = {
     Functions: {
       admin_exists: { Args: never; Returns: boolean }
       claim_first_admin: { Args: never; Returns: boolean }
+      delete_manual_stock_movement: {
+        Args: { _movement_id: string }
+        Returns: undefined
+      }
       finalize_admin_bootstrap: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {

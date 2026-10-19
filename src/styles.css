@@ -97,3 +97,13 @@
   transform: rotate(-2deg);
   border-radius: 0.3em 1.2em 0.4em 1em;
 }
+
+.delivery-announcement { overflow: hidden; }
+.delivery-announcement-text { display: block; width: max-content; white-space: nowrap; animation: delivery-travel 18s linear infinite; }
+@keyframes delivery-travel {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100vw); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .delivery-announcement-text { animation: none; width: auto; white-space: normal; padding-inline: 1rem; text-align: center; }
+}

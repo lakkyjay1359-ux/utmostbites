@@ -3,6 +3,8 @@ export const ORDER_STATUSES = ["Received", "Confirmed", "Preparing", "Ready for 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const statusLabel = (s: string) => (s === "Received" ? "New" : s === "Ready" ? "Ready for Collection" : s);
 export const PAYMENT_STATUSES = ["pending", "paid", "failed", "refunded"] as const;
+export const canDeleteOrder = (paymentStatus: string) => paymentStatus === "failed";
+export const canDeleteStockMovement = (movement: { kind: string; order_id: string | null }) => movement.order_id === null && ["adjust", "restock"].includes(movement.kind);
 export const paymentLabel = (m: string) => m === "mpesa" ? "M-Pesa (STK push)" : m === "mpesa_on_delivery" ? "M-Pesa on delivery" : "Cash";
 
 const NAIROBI_OFFSET = 3 * 3600_000; // Africa/Nairobi is UTC+3 all year (no DST)
