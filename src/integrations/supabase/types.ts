@@ -188,6 +188,7 @@ export type Database = {
           payment_ref: string | null
           payment_status: string
           phone: string
+          source: string
           status: Database["public"]["Enums"]["order_status"]
           stock_deducted: boolean
           total: number
@@ -208,6 +209,7 @@ export type Database = {
           payment_ref?: string | null
           payment_status?: string
           phone: string
+          source?: string
           status?: Database["public"]["Enums"]["order_status"]
           stock_deducted?: boolean
           total: number
@@ -228,6 +230,7 @@ export type Database = {
           payment_ref?: string | null
           payment_status?: string
           phone?: string
+          source?: string
           status?: Database["public"]["Enums"]["order_status"]
           stock_deducted?: boolean
           total?: number
@@ -453,6 +456,16 @@ export type Database = {
     Functions: {
       admin_exists: { Args: never; Returns: boolean }
       claim_first_admin: { Args: never; Returns: boolean }
+      create_pos_sale: {
+        Args: {
+          _customer_name?: string
+          _items: Json
+          _payment: string
+          _payment_ref?: string
+          _phone?: string
+        }
+        Returns: Json
+      }
       delete_manual_stock_movement: {
         Args: { _movement_id: string }
         Returns: undefined

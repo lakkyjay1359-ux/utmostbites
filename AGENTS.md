@@ -16,3 +16,4 @@
 - Admin role grants and checks are enforced in the database against the verified owner's email, including auth lifecycle changes, so no browser or stale role row can bypass access restrictions.
 - Stock deduction/restoration on order status change is done by the orders_stock_sync DB trigger, so it can't double-run from the UI.
 - Order deletion uses failed-only owner RLS; manual stock-movement deletion uses a transactional owner-checked RPC that reverses its quantity change, protecting order-generated movements.
+- Walk-in (POS) sales are created only through the create_pos_sale SECURITY DEFINER RPC: it re-reads prices server-side, inserts orders with source='pos' as paid/Completed, and deducts stock in the same transaction; the client never sends prices.

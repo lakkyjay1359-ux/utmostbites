@@ -36,6 +36,20 @@
       "when": 1792385797281,
       "tag": "0004_admin_failed_order_and_stock_deletion",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792387647281,
+      "tag": "0005_pos_walkin_sales",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792387685257,
+      "tag": "0006_fix_pos_sale_customer_name",
+      "breakpoints": true
     }
   ]
 }
