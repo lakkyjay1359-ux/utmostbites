@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { LayoutDashboard, ClipboardList, UtensilsCrossed, Boxes, BarChart3, Settings, LogOut, Menu as MenuIcon } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, ClipboardList, UtensilsCrossed, Boxes, BarChart3, Settings, LogOut, Menu as MenuIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatOrderNo, ksh } from "@/lib/site";
 import { DashboardView, OrdersView, MenuView, StockView, SalesView, SettingsView } from "@/components/admin/AdminViews";
+import { PosView } from "@/components/admin/PosView";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/admin")({
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "pos", label: "Point of Sale", icon: ShoppingCart },
   { id: "orders", label: "Orders", icon: ClipboardList },
   { id: "menu", label: "Menu Management", icon: UtensilsCrossed },
   { id: "stock", label: "Stock Management", icon: Boxes },
@@ -90,8 +92,8 @@ function ControlRoom({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     const ch = supabase.channel("admin-orders")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (p) => {
-        const o = p.new as { order_no: number | null; customer_name: string; total: number };
-        toast.success(`New order ${formatOrderNo(o.order_no)} — ${o.customer_name} · ${ksh(o.total)}`, { duration: 10000 });
+        const o = p.new as { order_no: number | null; customer_name: string; total: number; source?: string };
+        if (o.source !== "pos") toast.success(`New order ${formatOrderNo(o.order_no)} — ${o.customer_name} · ${ksh(o.total)}`, { duration: 10000 });
         qc.invalidateQueries({ queryKey: ["admin"] });
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders" }, (p) => {
@@ -119,6 +121,7 @@ function ControlRoom({ onLogout }: { onLogout: () => void }) {
       <main className="min-w-0 flex-1">
         <button className="mb-4 flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm md:hidden" onClick={() => setNavOpen(true)}><MenuIcon className="h-4 w-4" /> Sections</button>
         {tab === "dashboard" && <DashboardView onOpen={(id) => { setOpenOrder(id); setTab("orders"); }} />}
+        {tab === "pos" && <PosView />}
         {tab === "orders" && <OrdersView openId={openOrder} setOpenId={setOpenOrder} />}
         {tab === "menu" && <MenuView />}
         {tab === "stock" && <StockView />}

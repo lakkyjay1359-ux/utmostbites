@@ -107,3 +107,18 @@
 @media (prefers-reduced-motion: reduce) {
   .delivery-announcement-text { animation: none; width: auto; white-space: normal; padding-inline: 1rem; text-align: center; }
 }
+
+/* POS receipt: hidden on screen, only thing printed */
+.print-receipt { display: none; }
+@media print {
+  body * { visibility: hidden; }
+  .print-receipt, .print-receipt * { visibility: visible; }
+  .print-receipt {
+    display: block; position: absolute; inset: 0 auto auto 0; width: 72mm;
+    background: #fff; color: #000; font-family: monospace; font-size: 12px; padding: 4mm;
+  }
+  .print-receipt .pr-name { font-size: 15px; font-weight: bold; text-align: center; }
+  .print-receipt .pr-line { display: flex; justify-content: space-between; }
+  .print-receipt .pr-total { font-weight: bold; font-size: 14px; }
+  .print-receipt hr { border: none; border-top: 1px dashed #000; margin: 4px 0; }
+}
