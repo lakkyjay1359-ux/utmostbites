@@ -50,6 +50,13 @@
       "when": 1792387685257,
       "tag": "0006_fix_pos_sale_customer_name",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792389375592,
+      "tag": "0007_reuse_deleted_failed_order_numbers",
+      "breakpoints": true
     }
   ]
 }
