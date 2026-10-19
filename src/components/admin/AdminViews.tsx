@@ -4,9 +4,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatOrderNo, parseOrderNo, ksh } from "@/lib/site";
 import { CopyButton } from "@/components/site/CopyButton";
+import { DeleteControl } from "@/components/admin/DeleteControl";
 import { IMAGE_KEYS, imageFor } from "@/lib/images";
 import {
-  ORDER_STATUSES, PAYMENT_STATUSES, statusLabel, paymentLabel, fmtNairobi, nairobiDate,
+  ORDER_STATUSES, PAYMENT_STATUSES, canDeleteOrder, canDeleteStockMovement, statusLabel, paymentLabel, fmtNairobi, nairobiDate,
   periodRange, rangeToUtc, summarize, isSale, isOverduePayment, stockStatus, type Period, type SaleOrder,
 } from "@/lib/admin";
 
@@ -84,6 +85,7 @@ export function DashboardView({ onOpen }: { onOpen: (id: string) => void }) {
 }
 
 function OrderTable({ orders, onOpen }: { orders: Order[]; onOpen: (id: string) => void }) {
+  const qc = useQueryClient();
   return (
     <Table head={["Order", "Customer", "Total", "Payment", "Status", "Date & time", ""]} empty={!orders.length}>
       {orders.map((o) => (
@@ -92,7 +94,13 @@ function OrderTable({ orders, onOpen }: { orders: Order[]; onOpen: (id: string) 
           <td className={td}><p>{paymentLabel(o.payment)}</p><Badge tone={payTone(o.payment_status)}>{o.payment_status}</Badge>{o.payment_ref && <p className="select-all text-xs">{o.payment_ref}</p>}</td>
           <td className={td}><Badge tone={statusTone(o.status)}>{statusLabel(o.status)}</Badge></td>
           <td className={`${td} whitespace-nowrap`}>{fmtNairobi(o.created_at)}</td>
-          <td className={td}><button className={btnGhost} onClick={() => onOpen(o.id)}>View</button></td>
+          <td className={`${td} whitespace-nowrap`}><button className={btnGhost} onClick={() => onOpen(o.id)}>View</button>{" "}
+            <DeleteControl label={`Delete order for ${o.customer_name}`} disabled={!canDeleteOrder(o.payment_status)} confirmation={`Delete the failed-payment order for ${o.customer_name}? This cannot be undone.`} onDelete={async () => {
+              const { data, error } = await supabase.from("orders").delete().eq("id", o.id).eq("payment_status", "failed").select("id");
+              if (error) throw new Error(error.message);
+              if (!data?.length) throw new Error("Order was not deleted. Only failed payments can be deleted.");
+              await qc.invalidateQueries({ queryKey: ["admin"] });
+            }} /></td>
         </tr>
       ))}
     </Table>
@@ -317,16 +325,26 @@ export function StockView() {
             <td className={td}>{s.quantity}</td><td className={td}>{s.unit}</td><td className={td}>{s.min_level}</td>
             <td className={td}><Badge tone={tone(st)}>{st}</Badge></td>
             <td className={td}>{s.last_restocked_at ? fmtNairobi(s.last_restocked_at) : "—"}</td>
-            <td className={`${td} whitespace-nowrap`}><button className={btn} onClick={() => setRestock(s)}>Restock</button>{" "}<button className={btnGhost} onClick={() => setItem(s)}>Edit</button></td>
+            <td className={`${td} whitespace-nowrap`}><button className={btn} onClick={() => setRestock(s)}>Restock</button>{" "}<button className={btnGhost} onClick={() => setItem(s)}>Edit</button>{" "}
+              <DeleteControl label={`Delete stock item ${s.name}`} confirmation={`Delete ${s.name}, its movement history and ingredient links? This cannot be undone.`} onDelete={async () => {
+                const { error } = await supabase.from("stock_items").delete().eq("id", s.id);
+                if (error) throw new Error(error.message);
+                await refresh();
+              }} /></td>
           </tr>); })}
       </Table>
 
       <h2 className="text-xl font-bold text-primary">Stock movements</h2>
-      <Table head={["Date", "Item", "Change", "Type", "Supplier", "Cost", "Notes"]} empty={!moves?.length}>
+      <Table head={["Date", "Item", "Change", "Type", "Supplier", "Cost", "Notes", ""]} empty={!moves?.length}>
         {(moves ?? []).map((m: any) => (
           <tr key={m.id}><td className={td}>{m.moved_on}</td><td className={td}>{m.stock_items?.name}</td>
             <td className={`${td} font-semibold ${m.change < 0 ? "text-destructive" : "text-fresh"}`}>{m.change > 0 ? "+" : ""}{m.change} {m.stock_items?.unit}</td>
-            <td className={td}>{m.kind.replace("_", " ")}</td><td className={td}>{m.supplier ?? "—"}</td><td className={td}>{m.cost != null ? ksh(m.cost) : "—"}</td><td className={td}>{m.notes ?? ""}</td></tr>
+            <td className={td}>{m.kind.replace("_", " ")}</td><td className={td}>{m.supplier ?? "—"}</td><td className={td}>{m.cost != null ? ksh(m.cost) : "—"}</td><td className={td}>{m.notes ?? ""}</td>
+            <td className={td}><DeleteControl label={`Delete stock movement ${m.stock_items?.name ?? "item"}`} disabled={!canDeleteStockMovement(m)} confirmation={`Delete this ${m.kind} entry for ${m.stock_items?.name ?? "item"}? Its quantity change will be reversed.`} onDelete={async () => {
+              const { error } = await supabase.rpc("delete_manual_stock_movement", { _movement_id: m.id });
+              if (error) throw new Error(error.message);
+              await refresh();
+            }} /></td></tr>
         ))}
       </Table>
 
