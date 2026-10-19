@@ -1,8 +1,8 @@
 # Requested updates
-- [ ] Add failed-payment order deletion and stock deletion controls with owner-only protection.
-- [ ] Add the repeating left-to-right delivery announcement.
-- [ ] Replace Smoothie with KFC mtaani at KSh 350 using the uploaded photo.
-- [ ] Test and verify the requested changes.
+- [x] Add failed-payment order deletion and stock deletion controls with owner-only protection.
+- [x] Add the repeating left-to-right delivery announcement.
+- [x] Replace Smoothie with KFC mtaani at KSh 350 using the uploaded photo.
+- [x] Test and verify the requested changes (22 tests; owner stock and failed-order deletion; mobile layout; photo loads).
 - [x] Assign gapless integer order numbers only on successful payment and display through one A-number helper.
 - [x] Add copying to confirmation, tracking and admin details; support A-number tracking and searching.
 - [x] Restrict admin to the owner's verified account and remove public staff links/signup.
