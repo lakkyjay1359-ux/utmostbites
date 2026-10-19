@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { formatOrderNo, ksh, whatsappHref } from "@/lib/site";
+import { DEFAULT_CHECKOUT_PAYMENT, formatOrderNo, ksh, whatsappHref } from "@/lib/site";
 import { CopyButton } from "@/components/site/CopyButton";
 import { placeOrder } from "@/lib/orders.functions";
 import { initiateMpesaPayment, mpesaPaymentStatus } from "@/lib/mpesa.functions";
@@ -30,7 +30,7 @@ function CartPage() {
   const submit = useServerFn(placeOrder);
   const payMpesa = useServerFn(initiateMpesaPayment);
   const checkPaid = useServerFn(mpesaPaymentStatus);
-  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", location: "", instructions: "", payment: "cash" as "cash" | "mpesa_on_delivery" | "mpesa" });
+  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", location: "", instructions: "", payment: DEFAULT_CHECKOUT_PAYMENT as "cash" | "mpesa_on_delivery" | "mpesa" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ code: string; total: number; orderNo: number | null; receipt: string | null; lines: { name: string; variant: string | null; qty: number; line_total: number }[] } | null>(null);

@@ -17,6 +17,8 @@ export function whatsappHref(message?: string) {
 
 export const ksh = (n: number) => `KSh ${n.toLocaleString("en-KE")}`;
 
+export const DEFAULT_CHECKOUT_PAYMENT = "mpesa" as const;
+
 export const formatOrderNo = (n: number | null | undefined) => n == null ? "Awaiting payment" : `A${n}`;
 
 export function parseOrderNo(value: string): number | null {
