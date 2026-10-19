@@ -12,7 +12,8 @@ function renderAt(path: string) {
     context: { queryClient },
     history: createMemoryHistory({ initialEntries: [path] }),
   });
-  return render(<RouterProvider router={router} />);
+  render(<RouterProvider router={router} />);
+  return router;
 }
 
 afterEach(() => {
@@ -22,18 +23,22 @@ afterEach(() => {
 
 // Assert only that the router mounts and paints, never page content:
 // routes are rewritten as the app is built and this must keep passing.
+// The root route renders a full-document shell (<html>), so assert on
+// document content and router state rather than the render container.
 describe("App routing", () => {
   it("renders the index route", async () => {
-    const { container } = renderAt("/");
+    const router = renderAt("/");
 
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    await waitFor(() => expect(document.querySelector("header, main, h1")).not.toBeNull());
+    expect(router.state.location.pathname).toBe("/");
   });
 
   it("renders the not-found route", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-    const { container } = renderAt("/this-route-does-not-exist");
+    const router = renderAt("/this-route-does-not-exist");
 
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    await waitFor(() => expect(document.querySelector("header, main, h1")).not.toBeNull());
+    expect(router.state.location.pathname).toBe("/this-route-does-not-exist");
   });
 });
