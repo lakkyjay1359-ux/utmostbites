@@ -28,19 +28,18 @@ afterEach(() => {
 describe("App routing", () => {
   it("renders the index route", async () => {
     const router = renderAt("/");
-    await router.load();
 
-    expect(router.state.status).toBe("idle");
+    await waitFor(() => expect(router.state.matches.length).toBeGreaterThan(0));
     expect(router.state.location.pathname).toBe("/");
-    expect(router.state.matches.length).toBeGreaterThan(0);
+    expect(router.state.matches.some((m) => m.routeId === "/")).toBe(true);
   });
 
   it("renders the not-found route", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
     const router = renderAt("/this-route-does-not-exist");
-    await router.load();
 
+    await waitFor(() => expect(router.state.matches.length).toBeGreaterThan(0));
     expect(router.state.location.pathname).toBe("/this-route-does-not-exist");
     expect(router.state.matches.some((m) => m.routeId === "__root__")).toBe(true);
   });
