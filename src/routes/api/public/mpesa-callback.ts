@@ -1,8 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+const callbackSchema = z.object({ Body: z.object({ stkCallback: z.object({
+  CheckoutRequestID: z.string().min(1).max(150),
+  ResultCode: z.number().int(), ResultDesc: z.string().max(1000),
+  CallbackMetadata: z.object({ Item: z.array(z.object({ Name: z.string().max(80), Value: z.union([z.string().max(100), z.number()]).optional() })).max(20) }).optional(),
+}) }) });
 
 // Safaricom Daraja STK-push callback. Daraja sends no signature, so we only
-// ever update an order whose stored mpesa_checkout_request_id matches the
-// CheckoutRequestID in the payload — anything else is ignored.
+// use the checkout ID only to locate the order, then independently query Daraja.
+// An unsigned callback alone must never authorize a paid/failed transition.
 export const Route = createFileRoute("/api/public/mpesa-callback")({
   server: {
     handlers: {
@@ -11,32 +18,30 @@ export const Route = createFileRoute("/api/public/mpesa-callback")({
           new Response(JSON.stringify({ ResultCode: 0, ResultDesc: "Accepted" }), {
             headers: { "Content-Type": "application/json" },
           });
-        let payload: any;
+        let payload: unknown;
         try {
           payload = await request.json();
         } catch {
           return ack();
         }
-        const cb = payload?.Body?.stkCallback;
-        const checkoutId: string | undefined = cb?.CheckoutRequestID;
-        if (!cb || typeof checkoutId !== "string") return ack();
+        const parsed = callbackSchema.safeParse(payload);
+        if (!parsed.success) return ack();
+        const cb = parsed.data.Body.stkCallback;
+        const checkoutId = cb.CheckoutRequestID;
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        if (cb.ResultCode === 0) {
-          const items: { Name: string; Value?: unknown }[] = cb.CallbackMetadata?.Item ?? [];
-          const get = (n: string) => items.find((i) => i.Name === n)?.Value;
-          const receipt = typeof get("MpesaReceiptNumber") === "string" ? (get("MpesaReceiptNumber") as string) : null;
-          await supabaseAdmin
-            .from("orders")
-            .update({ payment_status: "paid", payment_ref: receipt })
-            .eq("mpesa_checkout_request_id", checkoutId)
-            .eq("payment_status", "pending");
-        } else {
-          await supabaseAdmin
-            .from("orders")
-            .update({ payment_status: "failed" })
-            .eq("mpesa_checkout_request_id", checkoutId)
-            .eq("payment_status", "pending");
+        const { data: order, error } = await supabaseAdmin.from("orders")
+          .select("id").eq("mpesa_checkout_request_id", checkoutId).maybeSingle();
+        if (error) { console.error("M-Pesa callback lookup error", error.message); return new Response("Retry later", { status: 503 }); }
+        if (!order) { console.error("M-Pesa callback unmatched CheckoutRequestID:", checkoutId); return ack(); }
+        try {
+          const { reconcilePayment } = await import("@/lib/mpesa-reconcile.server");
+          await reconcilePayment(order.id);
+          // Query results provide the trusted status and failure description. Receipt metadata
+          // is intentionally not persisted without a provider-authenticated receipt lookup.
+        } catch (e) {
+          console.error("M-Pesa callback verification error", e instanceof Error ? e.message : "Query unavailable");
+          return new Response("Retry later", { status: 503 });
         }
         return ack();
       },

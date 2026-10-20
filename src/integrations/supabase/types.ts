@@ -183,8 +183,11 @@ export type Database = {
           instructions: string | null
           location: string | null
           mpesa_checkout_request_id: string | null
+          mpesa_last_query_at: string | null
+          mpesa_prompt_started_at: string | null
           order_no: number | null
           payment: string
+          payment_note: string | null
           payment_ref: string | null
           payment_status: string
           phone: string
@@ -204,8 +207,11 @@ export type Database = {
           instructions?: string | null
           location?: string | null
           mpesa_checkout_request_id?: string | null
+          mpesa_last_query_at?: string | null
+          mpesa_prompt_started_at?: string | null
           order_no?: number | null
           payment: string
+          payment_note?: string | null
           payment_ref?: string | null
           payment_status?: string
           phone: string
@@ -225,8 +231,11 @@ export type Database = {
           instructions?: string | null
           location?: string | null
           mpesa_checkout_request_id?: string | null
+          mpesa_last_query_at?: string | null
+          mpesa_prompt_started_at?: string | null
           order_no?: number | null
           payment?: string
+          payment_note?: string | null
           payment_ref?: string | null
           payment_status?: string
           phone?: string
