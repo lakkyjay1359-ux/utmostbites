@@ -57,6 +57,13 @@
       "when": 1792389375592,
       "tag": "0007_reuse_deleted_failed_order_numbers",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792530747872,
+      "tag": "0008_mpesa_confirmation_recovery",
+      "breakpoints": true
     }
   ]
 }
