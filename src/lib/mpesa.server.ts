@@ -93,12 +93,14 @@ export async function stkPush(args: {
   };
   if (!res.ok || body.ResponseCode !== "0" || !body.CheckoutRequestID) {
     console.error("Daraja STK push error", res.status, body.errorMessage || body.ResponseDescription || body.CustomerMessage || "Request rejected");
-    throw new Error(
+    const error = new Error(
       body.errorMessage ||
         body.ResponseDescription ||
         body.CustomerMessage ||
         "M-Pesa request was rejected. Check the phone number and try again."
     );
+    error.name = "DarajaRejection";
+    throw error;
   }
   return { checkoutRequestId: body.CheckoutRequestID };
 }

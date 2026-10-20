@@ -4,7 +4,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { to254 } from "./mpesa";
 
-const phoneRe = /^(?:\+?254|0)(7|1)\d{8}$/;
 const normalizePhone = (p: string) => {
   const d = p.replace(/[\s-]/g, "");
   if (d.startsWith("+254")) return "0" + d.slice(4);
@@ -40,6 +39,11 @@ export const initiateMpesaPayment = createServerFn({ method: "POST" })
       return { ok: false as const, error: "An M-Pesa request already exists. Check payment status before paying again; do not resend if money was deducted." };
     }
 
+    const { data: reserved, error: reserveError } = await supabaseAdmin.from("orders")
+      .update({ mpesa_prompt_started_at: new Date().toISOString() })
+      .eq("id", order.id).eq("payment_status", "pending").is("mpesa_checkout_request_id", null)
+      .is("mpesa_prompt_started_at", null).select("id");
+    if (reserveError || !reserved?.length) return { ok: false as const, error: reserveError?.message || "A payment request is already in progress. Do not pay again if money was deducted." };
     const origin = new URL(process.env["PUBLIC_SITE_URL"] || getRequestUrl().origin).origin;
     const callbackUrl = `${origin}/api/public/mpesa-callback`;
     console.error("M-Pesa callback URL:", callbackUrl);
@@ -61,6 +65,12 @@ export const initiateMpesaPayment = createServerFn({ method: "POST" })
       }
       return { ok: true as const };
     } catch (e) {
+      // A rejected request can be retried on the same order. Network errors are ambiguous,
+      // so leave the reservation in place rather than risk charging twice.
+      if (e instanceof Error && e.name === "DarajaRejection") {
+        await supabaseAdmin.from("orders").update({ mpesa_prompt_started_at: null, payment_note: e.message })
+          .eq("id", order.id).eq("payment_status", "pending").is("mpesa_checkout_request_id", null);
+      }
       return { ok: false as const, error: e instanceof Error ? e.message : "Could not start M-Pesa payment." };
     }
   });
