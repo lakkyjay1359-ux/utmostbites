@@ -7,6 +7,8 @@ import { DEFAULT_CHECKOUT_PAYMENT, formatOrderNo, ksh, whatsappHref } from "@/li
 import { CopyButton } from "@/components/site/CopyButton";
 import { placeOrder } from "@/lib/orders.functions";
 import { initiateMpesaPayment, mpesaPaymentStatus } from "@/lib/mpesa.functions";
+import { Button } from "@/components/ui/button";
+import { MPESA_WAIT_MS } from "@/lib/mpesa";
 import { QtyStepper } from "@/components/site/ProductCard";
 
 export const Route = createFileRoute("/cart")({
@@ -34,7 +36,20 @@ function CartPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ code: string; total: number; orderNo: number | null; receipt: string | null; lines: { name: string; variant: string | null; qty: number; line_total: number }[] } | null>(null);
-  const [mpesa, setMpesa] = useState<"idle" | "pushing" | "waiting" | "paid" | "failed">("idle");
+  const [mpesa, setMpesa] = useState<"idle" | "pushing" | "waiting" | "delayed" | "paid" | "failed">("idle");
+
+  const [paymentPending, setPaymentPending] = useState(true);
+  const [waitStarted, setWaitStarted] = useState(0);
+
+  const sendPrompt = async (code: string) => {
+    setErr(""); setMpesa("pushing"); setBusy(true); setWaitStarted(Date.now());
+    try {
+      const p = await payMpesa({ data: { code, phone: f.phone } });
+      if (!p.ok) { setErr(p.error); setMpesa("delayed"); return; }
+      setMpesa("waiting");
+    } catch (e) { setErr(e instanceof Error ? e.message : "Could not send M-Pesa prompt."); setMpesa("delayed"); }
+    finally { setBusy(false); }
+  };
 
   // Keep pending cash orders and slow callbacks up to date without creating a number early.
   useEffect(() => {
@@ -45,12 +60,17 @@ function CartPage() {
         const s = await checkPaid({ data: { code: done.code, phone: f.phone } });
         if (!stopped && s.found && s.paymentStatus === "paid" && s.orderNo != null) {
           setDone((d) => d ? { ...d, orderNo: s.orderNo, receipt: s.receipt } : d);
+          setPaymentPending(false);
           if (f.payment === "mpesa") setMpesa("paid");
+        } else if (!stopped && s.found && s.paymentStatus === "failed") {
+          setPaymentPending(false); setMpesa("failed"); setErr(s.note || "The M-Pesa payment did not go through.");
+        } else if (!stopped && waitStarted && Date.now() - waitStarted >= MPESA_WAIT_MS) {
+          setMpesa("delayed");
         }
       } catch { /* Retry on the next poll. */ }
     }, 5000);
     return () => { stopped = true; clearInterval(timer); };
-  }, [done?.code, done?.orderNo, f.phone, f.payment, checkPaid]);
+  }, [done?.code, done?.orderNo, f.phone, f.payment, checkPaid, waitStarted]);
 
   const summary = [
     "Hi Utmost Bites! My order:",
@@ -64,6 +84,7 @@ function CartPage() {
     <div className="mx-auto max-w-xl px-4 py-16 text-center">
       <h1 className="text-3xl font-bold text-gold">{done.orderNo != null ? "Order confirmed!" : "Order received!"}</h1>
       {done.orderNo != null ? <div className="mt-4 flex flex-wrap items-center justify-center gap-3"><strong className="select-all text-4xl text-primary">{formatOrderNo(done.orderNo)}</strong><CopyButton text={formatOrderNo(done.orderNo)} /></div> : <p className="mt-4 text-muted-foreground">Your order number will appear when payment is received.</p>}
+      {done.orderNo == null && <div className="mt-3 flex flex-wrap items-center justify-center gap-2"><span className="select-all">Order reference: {done.code}</span><CopyButton text={done.code} /></div>}
       <p className="mt-4">Total {ksh(done.total)}</p>
       {done.receipt && <p className="mt-2 text-sm">M-Pesa receipt: <span className="select-all">{done.receipt}</span></p>}
       {done.orderNo != null && <div className="mt-4"><CopyButton label="Copy order details" text={[
@@ -77,12 +98,15 @@ function CartPage() {
           {mpesa === "paid" ? (
             <p className="font-semibold text-fresh">Payment received — thank you! Your order is being prepared.</p>
           ) : mpesa === "failed" ? (
-            <p className="text-sm text-destructive">{err || "The M-Pesa payment didn't go through."} You can pay cash on {f.fulfillment} or try again from Track Order.</p>
+            <p className="text-sm text-destructive">{err || "The M-Pesa payment didn't go through."} Contact Utmost Bites before trying another payment if money was deducted.</p>
+          ) : mpesa === "delayed" ? (
+            <div className="space-y-3 text-sm"><p>We haven’t received confirmation yet. If M-Pesa took your money, don’t pay again — enter your order number or the reference above and phone on the Track page.</p>{err && <p className="text-destructive">{err}</p>}</div>
           ) : (
             <p className="text-sm text-muted-foreground">
               {mpesa === "pushing" ? "Sending M-Pesa prompt…" : "Check your phone and enter your M-Pesa PIN to complete payment…"}
             </p>
           )}
+          {paymentPending && mpesa === "delayed" && <Button className="mt-4 h-auto whitespace-normal" disabled={busy} onClick={() => sendPrompt(done.code)}>Resend M-Pesa prompt</Button>}
         </div>
       ) : (
         <p className="mt-2 text-sm text-muted-foreground">Pay on {f.fulfillment === "delivery" ? "delivery" : "pickup"}. Your number is assigned after payment.</p>
@@ -105,17 +129,7 @@ function CartPage() {
       if (r.ok) {
         setDone({ code: r.code, total: r.total, lines: r.lines, orderNo: null, receipt: null }); cart.clear();
         if (f.payment === "mpesa") {
-          setMpesa("pushing");
-          const p = await payMpesa({ data: { code: r.code, phone: f.phone } });
-          if (!p.ok) { setMpesa("failed"); setErr(p.error); return; }
-          setMpesa("waiting");
-          for (let i = 0; i < 20; i++) {
-            await new Promise((res) => setTimeout(res, 5000));
-            const s = await checkPaid({ data: { code: r.code, phone: f.phone } });
-            if (s.found && s.paymentStatus === "paid") { setDone((d) => d ? { ...d, orderNo: s.orderNo, receipt: s.receipt } : d); setMpesa("paid"); return; }
-            if (s.found && s.paymentStatus === "failed") { setMpesa("failed"); return; }
-          }
-          setMpesa("failed");
+          await sendPrompt(r.code);
         }
       } else setErr(r.error);
     } catch (x: any) {

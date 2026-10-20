@@ -90,14 +90,16 @@ export const placeOrder = createServerFn({ method: "POST" })
 
 export const trackOrder = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({
-    code: z.string().trim().refine((s) => parseOrderNo(s) !== null, "Invalid order number"),
+    code: z.string().trim().refine((s) => parseOrderNo(s) !== null || /^UB[A-Z0-9]{4,8}$/i.test(s), "Invalid order number"),
     phone: z.string().trim().regex(phoneRe, "Enter the phone used for the order"),
   }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: o } = await supabaseAdmin.from("orders")
-      .select("id, order_no, status, total, fulfillment, payment_ref, payment_status, created_at, updated_at, phone, order_items(name, variant, qty, line_total)")
-      .eq("order_no", parseOrderNo(data.code) ?? 0).eq("phone", normalizePhone(data.phone)).maybeSingle();
+    let query = supabaseAdmin.from("orders")
+      .select("id, code, order_no, status, total, fulfillment, payment, payment_ref, payment_note, payment_status, created_at, updated_at, phone, order_items(name, variant, qty, line_total)");
+    const number = parseOrderNo(data.code);
+    query = number == null ? query.eq("code", data.code.toUpperCase()) : query.eq("order_no", number);
+    const { data: o } = await query.eq("phone", normalizePhone(data.phone)).maybeSingle();
     if (!o || o.phone !== normalizePhone(data.phone)) return { found: false as const };
     const { phone: _p, id: _id, ...rest } = o;
     return { found: true as const, order: rest };
