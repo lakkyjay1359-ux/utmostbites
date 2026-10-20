@@ -1,4 +1,5 @@
 # Requested updates
+- [ ] Diagnose and repair Till M-Pesa: saved checkout IDs, query fallback, verified callbacks, pending retries, owner reconciliation, tests and publication.
 - [x] Reuse deleted failed-sale numbers for new sales only and skip occupied numbers; database rollback tests passed without changing real receipts, plus 14 formatting/deletion tests.
 - [x] Add failed-payment order deletion and stock deletion controls with owner-only protection.
 - [x] Reverse the repeating delivery announcement to move right to left (verified in the browser).
