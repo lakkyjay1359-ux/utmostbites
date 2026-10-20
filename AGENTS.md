@@ -17,3 +17,4 @@
 - Stock deduction/restoration on order status change is done by the orders_stock_sync DB trigger, so it can't double-run from the UI.
 - Order deletion uses failed-only owner RLS; manual stock-movement deletion uses a transactional owner-checked RPC that reverses its quantity change, protecting order-generated movements.
 - Walk-in (POS) sales are created only through the create_pos_sale SECURITY DEFINER RPC: it re-reads prices server-side, inserts orders with source='pos' as paid/Completed, and deducts stock in the same transaction; the client never sends prices.
+- M-Pesa confirmation uses provider-authenticated STK queries with a database-backed ten-second throttle; unsigned callbacks only request reconciliation, unknown outcomes stay pending, and unresolved checkout IDs never trigger a second charge.
