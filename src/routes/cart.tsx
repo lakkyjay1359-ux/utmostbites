@@ -55,9 +55,12 @@ function CartPage() {
   useEffect(() => {
     if (!done || done.orderNo != null) return;
     let stopped = false;
+    const remaining = MPESA_WAIT_MS - (Date.now() - waitStarted);
+    const delayedTimer = waitStarted && paymentPending ? setTimeout(() => setMpesa("delayed"), Math.max(0, remaining)) : undefined;
     const timer = setInterval(async () => {
       try {
         const s = await checkPaid({ data: { code: done.code, phone: f.phone } });
+        if (!stopped && s.found && s.queryError) setErr(s.queryError);
         if (!stopped && s.found && s.paymentStatus === "paid" && s.orderNo != null) {
           setDone((d) => d ? { ...d, orderNo: s.orderNo, receipt: s.receipt } : d);
           setPaymentPending(false);
@@ -69,8 +72,8 @@ function CartPage() {
         }
       } catch { /* Retry on the next poll. */ }
     }, 5000);
-    return () => { stopped = true; clearInterval(timer); };
-  }, [done?.code, done?.orderNo, f.phone, f.payment, checkPaid, waitStarted]);
+    return () => { stopped = true; clearInterval(timer); clearTimeout(delayedTimer); };
+  }, [done?.code, done?.orderNo, f.phone, f.payment, checkPaid, waitStarted, paymentPending]);
 
   const summary = [
     "Hi Utmost Bites! My order:",
