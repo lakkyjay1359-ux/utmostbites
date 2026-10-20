@@ -1,5 +1,7 @@
 // M-Pesa Daraja (Lipa Na M-Pesa Online / STK Push) helpers — Buy Goods (Till) flow.
 // Server-only: reads MPESA_* secrets from the environment inside functions.
+import { to254, type QueryResult } from "./mpesa";
+export { to254 } from "./mpesa";
 
 const baseUrl = () =>
   process.env["MPESA_ENV"] === "production"
@@ -20,7 +22,7 @@ async function getAccessToken(): Promise<string> {
     ResponseDescription?: string;
   };
   if (!res.ok || !body.access_token) {
-    console.error("Daraja token error", res.status, JSON.stringify(body));
+    console.error("Daraja token error", res.status, body.errorMessage || body.ResponseDescription || "Token unavailable");
     throw new Error(
       body.errorMessage || body.ResponseDescription || "Could not reach M-Pesa. Please try again."
     );
@@ -43,12 +45,6 @@ const nairobiTimestamp = () => {
 };
 
 // Normalize to 2547XXXXXXXX / 2541XXXXXXXX: strip +, spaces, dashes; leading 0 -> 254.
-const to254 = (phone: string): string => {
-  let d = phone.replace(/[\s+-]/g, "");
-  if (d.startsWith("0")) d = "254" + d.slice(1);
-  if (!/^254(7|1)\d{8}$/.test(d)) throw new Error("Enter a valid Safaricom number, e.g. 0712 345 678.");
-  return d;
-};
 
 export async function stkPush(args: {
   phone: string; // any Kenyan format; normalized here
@@ -96,7 +92,7 @@ export async function stkPush(args: {
     CustomerMessage?: string;
   };
   if (!res.ok || body.ResponseCode !== "0" || !body.CheckoutRequestID) {
-    console.error("Daraja STK push error", res.status, JSON.stringify(body));
+    console.error("Daraja STK push error", res.status, body.errorMessage || body.ResponseDescription || body.CustomerMessage || "Request rejected");
     throw new Error(
       body.errorMessage ||
         body.ResponseDescription ||
@@ -105,4 +101,24 @@ export async function stkPush(args: {
     );
   }
   return { checkoutRequestId: body.CheckoutRequestID };
+}
+
+export async function stkQuery(checkoutRequestId: string): Promise<QueryResult> {
+  const storeNumber = process.env["MPESA_STORE_NUMBER"];
+  const passkey = process.env["MPESA_PASSKEY"];
+  if (!storeNumber || !passkey) throw new Error("M-Pesa is not configured yet.");
+  const timestamp = nairobiTimestamp();
+  const token = await getAccessToken();
+  const res = await fetch(`${baseUrl()}/mpesa/stkpushquery/v1/query`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ BusinessShortCode: storeNumber, Password: btoa(`${storeNumber}${passkey}${timestamp}`), Timestamp: timestamp, CheckoutRequestID: checkoutRequestId }),
+    signal: AbortSignal.timeout(15000),
+  });
+  const body = await res.json().catch(() => ({})) as QueryResult;
+  if (!res.ok || body.errorMessage) {
+    console.error("Daraja STK query error", res.status, body.errorMessage || body.ResultDesc || "Query unavailable");
+    throw new Error(body.errorMessage || body.ResultDesc || "Could not check M-Pesa. Please try again.");
+  }
+  return body;
 }
