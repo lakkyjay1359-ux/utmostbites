@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatOrderNo, parseOrderNo, ksh } from "@/lib/site";
 import { CopyButton } from "@/components/site/CopyButton";
 import { DeleteControl } from "@/components/admin/DeleteControl";
+import { CheckPaymentButton } from "@/components/admin/CheckPaymentButton";
 import { IMAGE_KEYS, imageFor } from "@/lib/images";
 import {
   ORDER_STATUSES, PAYMENT_STATUSES, canDeleteOrder, canDeleteStockMovement, statusLabel, paymentLabel, fmtNairobi, nairobiDate,
@@ -48,7 +49,7 @@ function Table({ head, children, empty }: { head: string[]; children: ReactNode;
 }
 
 /* ---------- data ---------- */
-type Order = SaleOrder & { order_no: number | null; customer_name: string; phone: string; fulfillment: string; location: string | null; instructions: string | null; payment_ref: string | null; source: string; order_items: { name: string; variant: string | null; qty: number; unit_price: number; line_total: number }[] };
+type Order = SaleOrder & { order_no: number | null; customer_name: string; phone: string; fulfillment: string; location: string | null; instructions: string | null; payment_ref: string | null; payment_note: string | null; source: string; order_items: { name: string; variant: string | null; qty: number; unit_price: number; line_total: number }[] };
 const useOrders = () => useQuery({
   queryKey: ["admin", "orders"],
   queryFn: async () => {
@@ -91,7 +92,7 @@ function OrderTable({ orders, onOpen }: { orders: Order[]; onOpen: (id: string) 
       {orders.map((o) => (
         <tr key={o.id}>
           <td className={`${td} font-bold`}>{formatOrderNo(o.order_no)}{o.source === "pos" && <> <Badge tone="border-primary text-primary">Walk-in</Badge></>}</td><td className={td}>{o.customer_name}</td><td className={td}>{ksh(o.total)}</td>
-          <td className={td}><p>{paymentLabel(o.payment)}</p><Badge tone={payTone(o.payment_status)}>{o.payment_status}</Badge>{o.payment_ref && <p className="select-all text-xs">{o.payment_ref}</p>}</td>
+          <td className={td}><p>{paymentLabel(o.payment)}</p><Badge tone={payTone(o.payment_status)}>{o.payment_status}</Badge>{o.payment_ref && <p className="select-all text-xs">{o.payment_ref}</p>}{o.payment_note && <p className="mt-1 text-xs">{o.payment_note}</p>}{o.payment === "mpesa" && o.payment_status === "pending" && <CheckPaymentButton id={o.id} />}</td>
           <td className={td}><Badge tone={statusTone(o.status)}>{statusLabel(o.status)}</Badge></td>
           <td className={`${td} whitespace-nowrap`}>{fmtNairobi(o.created_at)}</td>
           <td className={`${td} whitespace-nowrap`}><button className={btnGhost} onClick={() => onOpen(o.id)}>View</button>{" "}
@@ -144,7 +145,9 @@ export function OrdersView({ openId, setOpenId }: { openId: string | null; setOp
             {open.instructions && <><dt className="text-muted-foreground">Notes</dt><dd className="col-span-2">{open.instructions}</dd></>}
             <dt className="text-muted-foreground">Payment</dt><dd className="col-span-2">{paymentLabel(open.payment)} · <Badge tone={payTone(open.payment_status)}>{open.payment_status}</Badge></dd>
             <dt className="text-muted-foreground">M-Pesa receipt</dt><dd className="col-span-2 select-all">{open.payment_ref ?? "—"}</dd>
+            {open.payment_note && <><dt className="text-muted-foreground">Payment note</dt><dd className="col-span-2">{open.payment_note}</dd></>}
           </dl>
+          {open.payment === "mpesa" && open.payment_status === "pending" && <CheckPaymentButton id={open.id} />}
           <ul className="mt-4 divide-y divide-border border-y border-border text-sm">
             {open.order_items.map((i, k) => <li key={k} className="flex justify-between py-1.5"><span>{i.qty} × {i.name}{i.variant ? ` (${i.variant})` : ""}</span><span>{ksh(i.line_total)}</span></li>)}
             <li className="flex justify-between py-1.5 font-bold"><span>Total</span><span>{ksh(open.total)}</span></li>
