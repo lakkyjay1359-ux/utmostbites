@@ -184,6 +184,7 @@ export type Database = {
           location: string | null
           mpesa_checkout_request_id: string | null
           mpesa_last_query_at: string | null
+          mpesa_prompt_started_at: string | null
           order_no: number | null
           payment: string
           payment_note: string | null
@@ -207,6 +208,7 @@ export type Database = {
           location?: string | null
           mpesa_checkout_request_id?: string | null
           mpesa_last_query_at?: string | null
+          mpesa_prompt_started_at?: string | null
           order_no?: number | null
           payment: string
           payment_note?: string | null
@@ -230,6 +232,7 @@ export type Database = {
           location?: string | null
           mpesa_checkout_request_id?: string | null
           mpesa_last_query_at?: string | null
+          mpesa_prompt_started_at?: string | null
           order_no?: number | null
           payment?: string
           payment_note?: string | null

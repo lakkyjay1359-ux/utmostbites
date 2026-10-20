@@ -1,0 +1,2 @@
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS mpesa_prompt_started_at timestamptz;
+COMMENT ON COLUMN public.orders.mpesa_prompt_started_at IS 'Atomic prompt reservation. An accepted prompt is never resent while its outcome is unresolved.';
