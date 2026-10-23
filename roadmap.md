@@ -1,4 +1,6 @@
 # Requested updates
+- [ ] Show live website visit totals on the admin dashboard.
+- [ ] Add home-screen app metadata and background new-order phone notifications; requires a web-push service connection and phone permission.
 - [x] Repair Till M-Pesa: checked checkout-ID saves, throttled query fallback, verified callback reconciliation, two-minute pending state, safe same-order resend, reference tracking, owner reconciliation control and 54 passing tests. Real failed-order tracking and wrong-phone/non-owner rejection verified; existing Daraja query returned 1037.
 - [ ] Publish M-Pesa changes: waiting for publication approval/request; no deployment initiated.
 - [x] Reuse deleted failed-sale numbers for new sales only and skip occupied numbers; database rollback tests passed without changing real receipts, plus 14 formatting/deletion tests.
