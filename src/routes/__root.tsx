@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "@/lib/cart";
 import { SiteHeader, SiteFooter, FloatingContact } from "@/components/site/SiteChrome";
 import { Toaster } from "@/components/ui/sonner";
+import { VisitTracker } from "@/components/site/VisitTracker";
 
 function NotFoundComponent() {
   return (
@@ -63,6 +64,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=DM+Sans:wght@400;700&family=Kaushan+Script&display=swap" },
@@ -107,6 +110,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <CartProvider>
+        <VisitTracker />
         <SiteHeader />
         <main className="min-h-[70vh]"><Outlet /></main>
         <SiteFooter />

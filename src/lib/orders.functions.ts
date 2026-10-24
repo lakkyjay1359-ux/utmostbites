@@ -85,6 +85,10 @@ export const placeOrder = createServerFn({ method: "POST" })
       await supabaseAdmin.from("orders").delete().eq("id", order.id);
       return { ok: false as const, error: "We couldn't save your order. Please order via WhatsApp or call us." };
     }
+    try {
+      const { sendNewOrderAlert } = await import("./admin-push.server");
+      await sendNewOrderAlert({ id: order.id, source: "online" });
+    } catch { console.error("New-order phone alert could not be delivered"); }
     return { ok: true as const, code: order.code, total, lines: lines.map((l) => ({ name: l.name, variant: l.variant, qty: l.qty, line_total: l.line_total })) };
   });
 

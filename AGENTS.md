@@ -10,6 +10,8 @@
 <!-- LOVABLE:END -->
 
 ## Project rules
+- Website visits count storefront sessions (30-minute inactivity window) through a deduplicating database RPC; admin-only totals use Nairobi dates and exclude preview/admin traffic.
+- New-order push delivery runs server-side after online order lines save, targets currently verified owner devices only, and never makes a messaging failure fail checkout; the home-screen manifest has no offline cache.
 - Admin sales/period maths lives in src/lib/admin.ts (Nairobi UTC+3; sale = payment_status paid AND status not Cancelled) — one definition shared by dashboard, reports and tests.
 - Allocate immutable integer order numbers on the first non-cancelled paid transition using a transactional database counter; failed-order deletion rewinds it under the same row lock and allocation skips occupied numbers, so reuse is collision-safe and transactional. Format public numbers through src/lib/site.ts.
 - Clipboard controls share CopyButton with a browser fallback so confirmation, tracking and admin behave consistently.
