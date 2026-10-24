@@ -6,6 +6,7 @@ import { formatOrderNo, parseOrderNo, ksh } from "@/lib/site";
 import { CopyButton } from "@/components/site/CopyButton";
 import { DeleteControl } from "@/components/admin/DeleteControl";
 import { CheckPaymentButton } from "@/components/admin/CheckPaymentButton";
+import { WebsiteActivity } from "@/components/admin/WebsiteActivity";
 import { IMAGE_KEYS, imageFor } from "@/lib/images";
 import {
   ORDER_STATUSES, PAYMENT_STATUSES, canDeleteOrder, canDeleteStockMovement, statusLabel, paymentLabel, fmtNairobi, nairobiDate,
@@ -72,6 +73,7 @@ export function DashboardView({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gold">Dashboard</h1>
+      <WebsiteActivity />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <Card label="New orders" value={orders.filter((o) => o.status === "Received").length} tone="text-accent" />
         <Card label="Being prepared" value={orders.filter((o) => o.status === "Preparing").length} />

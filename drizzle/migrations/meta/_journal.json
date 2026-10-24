@@ -71,6 +71,13 @@
       "when": 1792530881012,
       "tag": "0009_mpesa_prompt_concurrency_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792837200552,
+      "tag": "0010_website_visits_and_admin_push_devices",
+      "breakpoints": true
     }
   ]
 }

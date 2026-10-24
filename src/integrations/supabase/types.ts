@@ -35,6 +35,24 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_push_devices: {
+        Row: {
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           id: string
@@ -458,6 +476,21 @@ export type Database = {
         }
         Relationships: []
       }
+      website_visits: {
+        Row: {
+          created_at: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          session_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -487,6 +520,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_website_visit: {
+        Args: { _session_id: string }
+        Returns: undefined
+      }
+      website_visit_totals: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
