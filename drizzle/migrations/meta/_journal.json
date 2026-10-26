@@ -78,6 +78,13 @@
       "when": 1792837200552,
       "tag": "0010_website_visits_and_admin_push_devices",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793020021003,
+      "tag": "0011_website_visit_daily",
+      "breakpoints": true
     }
   ]
 }

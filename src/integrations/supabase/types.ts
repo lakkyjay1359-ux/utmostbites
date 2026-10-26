@@ -524,6 +524,13 @@ export type Database = {
         Args: { _session_id: string }
         Returns: undefined
       }
+      website_visit_daily: {
+        Args: { _days?: number }
+        Returns: {
+          day: string
+          visits: number
+        }[]
+      }
       website_visit_totals: { Args: never; Returns: Json }
     }
     Enums: {
