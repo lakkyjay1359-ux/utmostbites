@@ -42,6 +42,7 @@ export const DELIVERY_AREAS = [
   "Marenyo",
   "Olivia",
   "Olympus",
+  "Orange House",
   "Opembi",
   "River Front",
   "Rome",
@@ -50,6 +51,11 @@ export const DELIVERY_AREAS = [
   "Yalla Villa",
   "Yellow House",
 ];
+
+// Hostel-style areas where the delivery person needs a room number to find the customer.
+export const ROOM_AREAS = ["ACK", "Amor Heights", "Centre 84", "Diana Hostels", "Helida", "Marenyo", "Opembi"];
+
+export const needsRoom = (area: string) => ROOM_AREAS.includes(area.trim());
 
 const LOCATION_MAX = 200; // matches the 200-character limit the order schema puts on public.orders.location
 
