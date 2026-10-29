@@ -1,10 +1,10 @@
 import { expect, it } from "vitest";
-import { DELIVERY_AREAS, deliveryLocation } from "@/lib/site";
+import { DELIVERY_AREAS, ROOM_AREAS, deliveryLocation, needsRoom } from "@/lib/site";
 
 const OWNER_AREAS = [
   "ACK", "Amor Heights", "Around manna highway", "Behind the School", "Centre 84",
   "Diana Hostels", "Helida", "Kwa Moha", "Manna Highway", "Marenyo", "Olivia",
-  "Olympus", "Opembi", "River Front", "Rome", "Total", "White House", "Yalla Villa", "Yellow House",
+  "Olympus", "Orange House", "Opembi", "River Front", "Rome", "Total", "White House", "Yalla Villa", "Yellow House",
 ];
 
 it("lists every delivery area the owner gave us", () => {

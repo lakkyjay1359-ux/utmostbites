@@ -11,6 +11,14 @@ import { Button } from "@/components/ui/button";
 import { MPESA_WAIT_MS } from "@/lib/mpesa";
 import { QtyStepper } from "@/components/site/ProductCard";
 
+// Combines the required room number (hostel areas) with any extra spot the customer typed.
+function exactSpot(f: { area: string; room: string; location: string }) {
+  if (!needsRoom(f.area)) return f.location;
+  const room = f.room.trim();
+  const extra = f.location.trim();
+  return room ? `Room ${room}${extra ? `, ${extra}` : ""}` : "";
+}
+
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
