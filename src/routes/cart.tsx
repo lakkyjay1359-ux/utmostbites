@@ -3,13 +3,21 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Scooter, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { DEFAULT_CHECKOUT_PAYMENT, DELIVERY_AREAS, deliveryLocation, formatOrderNo, ksh, whatsappHref } from "@/lib/site";
+import { DEFAULT_CHECKOUT_PAYMENT, DELIVERY_AREAS, deliveryLocation, formatOrderNo, ksh, needsRoom, whatsappHref } from "@/lib/site";
 import { CopyButton } from "@/components/site/CopyButton";
 import { placeOrder } from "@/lib/orders.functions";
 import { initiateMpesaPayment, mpesaPaymentStatus } from "@/lib/mpesa.functions";
 import { Button } from "@/components/ui/button";
 import { MPESA_WAIT_MS } from "@/lib/mpesa";
 import { QtyStepper } from "@/components/site/ProductCard";
+
+// Combines the required room number (hostel areas) with any extra spot the customer typed.
+function exactSpot(f: { area: string; room: string; location: string }) {
+  if (!needsRoom(f.area)) return f.location;
+  const room = f.room.trim();
+  const extra = f.location.trim();
+  return room ? `Room ${room}${extra ? `, ${extra}` : ""}` : "";
+}
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -32,7 +40,7 @@ function CartPage() {
   const submit = useServerFn(placeOrder);
   const payMpesa = useServerFn(initiateMpesaPayment);
   const checkPaid = useServerFn(mpesaPaymentStatus);
-  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", area: "", location: "", instructions: "", payment: DEFAULT_CHECKOUT_PAYMENT as "cash" | "mpesa_on_delivery" | "mpesa" });
+  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", area: "", room: "", location: "", instructions: "", payment: DEFAULT_CHECKOUT_PAYMENT as "cash" | "mpesa_on_delivery" | "mpesa" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ code: string; total: number; orderNo: number | null; receipt: string | null; lines: { name: string; variant: string | null; qty: number; line_total: number }[] } | null>(null);
@@ -80,7 +88,7 @@ function CartPage() {
     ...cart.items.map((i) => `${i.qty} x ${i.name}${i.variant ? ` (${i.variant})` : ""} - ${ksh(i.qty * i.price)}`),
     `Total: ${ksh(cart.total)}`,
     f.name && `Name: ${f.name}`,
-    `${f.fulfillment === "delivery" ? `Delivery to: ${deliveryLocation(f.area, f.location)}` : "Pickup"}`,
+    `${f.fulfillment === "delivery" ? `Delivery to: ${deliveryLocation(f.area, exactSpot(f))}` : "Pickup"}`,
   ].filter(Boolean).join("\n");
 
   if (done) return (
@@ -127,8 +135,10 @@ function CartPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setErr("");
-    const location = f.fulfillment === "delivery" ? deliveryLocation(f.area, f.location) : "";
+    const exact = exactSpot(f);
+    const location = f.fulfillment === "delivery" ? deliveryLocation(f.area, exact) : "";
     if (f.fulfillment === "delivery" && !location) { setErr("Choose your area or type your exact location."); return; }
+    if (f.fulfillment === "delivery" && needsRoom(f.area) && !f.room.trim()) { setErr("Add the room number."); return; }
     setBusy(true);
     try {
       const details = { name: f.name, phone: f.phone, fulfillment: f.fulfillment, instructions: f.instructions, payment: f.payment };
@@ -180,6 +190,7 @@ function CartPage() {
               <option value="">Choose your area</option>
               {DELIVERY_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
             </select>
+            {needsRoom(f.area) && <input required className={input} placeholder="Room number" value={f.room} onChange={(e) => setF({ ...f, room: e.target.value })} />}
             <input className={input} placeholder="Or type your exact location" value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} />
             <p className="text-sm text-muted-foreground">Hostel, room or landmark. Delivery: Free within Yala.</p>
           </div>

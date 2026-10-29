@@ -1,10 +1,10 @@
 import { expect, it } from "vitest";
-import { DELIVERY_AREAS, deliveryLocation } from "@/lib/site";
+import { DELIVERY_AREAS, ROOM_AREAS, deliveryLocation, needsRoom } from "@/lib/site";
 
 const OWNER_AREAS = [
   "ACK", "Amor Heights", "Around manna highway", "Behind the School", "Centre 84",
   "Diana Hostels", "Helida", "Kwa Moha", "Manna Highway", "Marenyo", "Olivia",
-  "Olympus", "Opembi", "River Front", "Rome", "Total", "White House", "Yalla Villa", "Yellow House",
+  "Olympus", "Orange House", "Opembi", "River Front", "Rome", "Total", "White House", "Yalla Villa", "Yellow House",
 ];
 
 it("lists every delivery area the owner gave us", () => {
@@ -26,4 +26,12 @@ it("builds the delivery note from the chosen area and the exact spot", () => {
 
 it("keeps the delivery note inside the limit the order schema accepts", () => {
   expect(deliveryLocation("Yellow House", "x".repeat(400)).length).toBeLessThanOrEqual(200);
+});
+
+it("asks for a room number only in the hostel areas the owner named", () => {
+  expect(ROOM_AREAS).toEqual(["ACK", "Amor Heights", "Centre 84", "Diana Hostels", "Helida", "Marenyo", "Opembi"]);
+  expect(needsRoom("ACK")).toBe(true);
+  expect(needsRoom("Opembi")).toBe(true);
+  expect(needsRoom("Orange House")).toBe(false);
+  expect(needsRoom("")).toBe(false);
 });
