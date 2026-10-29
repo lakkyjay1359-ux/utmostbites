@@ -27,3 +27,36 @@ export function parseOrderNo(value: string): number | null {
   const n = Number(match[1]);
   return Number.isSafeInteger(n) && n <= 2147483647 ? n : null;
 }
+
+// Delivery areas offered at checkout, spelled exactly as the owner spells them and listed alphabetically.
+export const DELIVERY_AREAS = [
+  "ACK",
+  "Amor Heights",
+  "Around manna highway",
+  "Behind the School",
+  "Centre 84",
+  "Diana Hostels",
+  "Helida",
+  "Kwa Moha",
+  "Manna Highway",
+  "Marenyo",
+  "Olivia",
+  "Olympus",
+  "Opembi",
+  "River Front",
+  "Rome",
+  "Total",
+  "White House",
+  "Yalla Villa",
+  "Yellow House",
+];
+
+const LOCATION_MAX = 200; // matches the 200-character limit the order schema puts on public.orders.location
+
+// Builds the delivery note from the chosen area plus the optional exact spot (hostel, room or landmark).
+export function deliveryLocation(area: string, exact: string) {
+  const a = area.trim();
+  const e = exact.trim();
+  const note = a && e ? `${a} — ${e}` : a || e;
+  return note.slice(0, LOCATION_MAX);
+}

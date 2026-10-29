@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Scooter, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { DEFAULT_CHECKOUT_PAYMENT, formatOrderNo, ksh, whatsappHref } from "@/lib/site";
+import { DEFAULT_CHECKOUT_PAYMENT, DELIVERY_AREAS, deliveryLocation, formatOrderNo, ksh, whatsappHref } from "@/lib/site";
 import { CopyButton } from "@/components/site/CopyButton";
 import { placeOrder } from "@/lib/orders.functions";
 import { initiateMpesaPayment, mpesaPaymentStatus } from "@/lib/mpesa.functions";
