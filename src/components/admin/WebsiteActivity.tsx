@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, BellOff } from "lucide-react";
+import { Bell, BellOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,9 +45,12 @@ export function WebsiteActivity() {
     <div className="panel p-4">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Website visits — last 14 days</p>
-        <p className="text-sm text-muted-foreground">Today <span className="font-bold text-gold">{visits.data?.today ?? "…"}</span> · Total <span className="font-bold text-gold">{visits.data?.total ?? "…"}</span></p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-muted-foreground">Today <span className="font-bold text-gold">{visits.data?.today ?? "…"}</span> · Total <span className="font-bold text-gold">{visits.data?.total ?? "…"}</span></p>
+          <Button variant="ghost" size="icon" aria-label="Refresh website visits" title="Refresh website visits" disabled={daily.isFetching || visits.isFetching} onClick={() => { void daily.refetch(); void visits.refetch(); }}><RefreshCw className={daily.isFetching || visits.isFetching ? "animate-spin" : ""} /></Button>
+        </div>
       </div>
-      {daily.isError ? <p className="text-sm text-muted-foreground">Unavailable</p> :
+      {daily.isPending ? <p className="flex h-56 items-center justify-center text-sm text-muted-foreground">Loading visits…</p> : daily.isError ? <p role="alert" className="text-sm text-destructive">Could not load website visits. Please refresh to try again.</p> :
         <ChartContainer config={{ visits: { label: "Visits", color: "var(--primary)" } }} className="h-56 w-full">
           <BarChart data={chartData}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -57,9 +60,10 @@ export function WebsiteActivity() {
             <Bar dataKey="visits" fill="var(--color-visits)" radius={4} />
           </BarChart>
         </ChartContainer>}
+      {daily.isSuccess && chartData.every((day) => Number(day.visits) === 0) && <p className="text-sm text-muted-foreground">No website visits recorded in the last 14 days.</p>}
     </div>
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-xs text-muted-foreground">{visits.data?.since ? `Counted since ${new Date(visits.data.since).toLocaleDateString("en-KE", { timeZone: "Africa/Nairobi" })}` : "Visit counting starts when this update goes live."}</p>
+      <p className="text-xs text-muted-foreground">{visits.data?.since ? `Counted since ${new Date(visits.data.since).toLocaleDateString("en-KE", { timeZone: "Africa/Nairobi" })}` : "No visits recorded yet."}</p>
       <Button variant="outline" disabled={busy} onClick={enable}>{enabled ? <Bell /> : <BellOff />}{busy ? "Enabling…" : enabled ? "Phone alerts enabled" : "Enable phone alerts"}</Button>
     </div>
   </section>;

@@ -13,7 +13,12 @@ export function VisitTracker() {
       id = previous?.id && typeof previous.last === "number" && !shouldStartVisit(previous.last, Date.now()) ? previous.id : crypto.randomUUID();
       sessionStorage.setItem("utmost-visit", JSON.stringify({ id, last: Date.now() }));
     } catch { id = crypto.randomUUID(); }
-    void supabase.rpc("record_website_visit", { _session_id: id });
+    // RPC builders are lazy: consume the promise so the request actually runs.
+    void Promise.resolve(supabase.rpc("record_website_visit", { _session_id: id }))
+      .then(({ error }) => {
+        if (error) console.error("Could not record website visit:", error.message);
+      })
+      .catch(() => console.error("Could not record website visit: connection unavailable"));
   }, [pathname]);
   return null;
 }
