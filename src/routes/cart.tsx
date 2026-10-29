@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Scooter, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { DEFAULT_CHECKOUT_PAYMENT, formatOrderNo, ksh, whatsappHref } from "@/lib/site";
+import { DEFAULT_CHECKOUT_PAYMENT, DELIVERY_AREAS, deliveryLocation, formatOrderNo, ksh, whatsappHref } from "@/lib/site";
 import { CopyButton } from "@/components/site/CopyButton";
 import { placeOrder } from "@/lib/orders.functions";
 import { initiateMpesaPayment, mpesaPaymentStatus } from "@/lib/mpesa.functions";
@@ -32,7 +32,7 @@ function CartPage() {
   const submit = useServerFn(placeOrder);
   const payMpesa = useServerFn(initiateMpesaPayment);
   const checkPaid = useServerFn(mpesaPaymentStatus);
-  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", location: "", instructions: "", payment: DEFAULT_CHECKOUT_PAYMENT as "cash" | "mpesa_on_delivery" | "mpesa" });
+  const [f, setF] = useState({ name: "", phone: "", fulfillment: "pickup" as "pickup" | "delivery", area: "", location: "", instructions: "", payment: DEFAULT_CHECKOUT_PAYMENT as "cash" | "mpesa_on_delivery" | "mpesa" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ code: string; total: number; orderNo: number | null; receipt: string | null; lines: { name: string; variant: string | null; qty: number; line_total: number }[] } | null>(null);
@@ -80,7 +80,7 @@ function CartPage() {
     ...cart.items.map((i) => `${i.qty} x ${i.name}${i.variant ? ` (${i.variant})` : ""} - ${ksh(i.qty * i.price)}`),
     `Total: ${ksh(cart.total)}`,
     f.name && `Name: ${f.name}`,
-    `${f.fulfillment === "delivery" ? `Delivery to: ${f.location}` : "Pickup"}`,
+    `${f.fulfillment === "delivery" ? `Delivery to: ${deliveryLocation(f.area, f.location)}` : "Pickup"}`,
   ].filter(Boolean).join("\n");
 
   if (done) return (
@@ -126,9 +126,13 @@ function CartPage() {
   );
 
   const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setErr(""); setBusy(true);
+    e.preventDefault(); setErr("");
+    const location = f.fulfillment === "delivery" ? deliveryLocation(f.area, f.location) : "";
+    if (f.fulfillment === "delivery" && !location) { setErr("Choose your area or type your exact location."); return; }
+    setBusy(true);
     try {
-      const r = await submit({ data: { ...f, items: cart.items.map((i) => ({ type: i.type, id: i.id, variant: i.variant, qty: i.qty })) } });
+      const details = { name: f.name, phone: f.phone, fulfillment: f.fulfillment, instructions: f.instructions, payment: f.payment };
+      const r = await submit({ data: { ...details, location, items: cart.items.map((i) => ({ type: i.type, id: i.id, variant: i.variant, qty: i.qty })) } });
       if (r.ok) {
         setDone({ code: r.code, total: r.total, lines: r.lines, orderNo: null, receipt: null }); cart.clear();
         if (f.payment === "mpesa") {
@@ -165,9 +169,21 @@ function CartPage() {
         <input required className={input} placeholder="Your name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <input required className={input} placeholder="Phone e.g. 0712345678" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
         <div className="flex gap-2">{(["pickup", "delivery"] as const).map((v) => (
-          <button type="button" key={v} onClick={() => setF({ ...f, fulfillment: v })} className={`flex-1 rounded-lg border py-2 capitalize ${f.fulfillment === v ? "border-primary bg-primary text-primary-foreground" : ""}`}>{v}</button>
+          <button type="button" key={v} onClick={() => setF({ ...f, fulfillment: v })} className={`flex-1 rounded-lg border py-2 capitalize ${f.fulfillment === v ? "border-primary bg-primary text-primary-foreground" : ""}`}>
+            <span className="inline-flex items-center justify-center gap-2">{v === "delivery" && <Scooter className="h-4 w-4 text-accent" aria-hidden />}{v}</span>
+          </button>
         ))}</div>
-        {f.fulfillment === "delivery" && <input required className={input} placeholder="Delivery location in Yala" value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} />}
+        {f.fulfillment === "delivery" && (
+          <div className="space-y-3">
+            <p className="text-lg font-bold text-primary">Where should our delivery person bring it?</p>
+            <select className={input} value={f.area} onChange={(e) => setF({ ...f, area: e.target.value })} aria-label="Delivery area">
+              <option value="">Choose your area</option>
+              {DELIVERY_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
+            <input className={input} placeholder="Or type your exact location" value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} />
+            <p className="text-sm text-muted-foreground">Hostel, room or landmark. Delivery: Free within Yala.</p>
+          </div>
+        )}
         <textarea className={input} placeholder="Instructions (optional)" value={f.instructions} onChange={(e) => setF({ ...f, instructions: e.target.value })} />
         <select className={input} value={f.payment} onChange={(e) => setF({ ...f, payment: e.target.value as any })}>
           <option value="mpesa">M-Pesa now (Lipa na M-Pesa prompt)</option>

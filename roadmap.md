@@ -1,4 +1,5 @@
 # Requested updates
+- [x] Arrange checkout delivery areas alphabetically and rebuild the delivery option in the owner's mock format (Pickup/Delivery with scooter icon, area dropdown, exact-location field, helper line); 4 new tests, 61 total passing, verified in the preview.
 - [x] Show website visits today and total sessions on the owner dashboard; exclude preview/admin traffic. Verified owner dashboard at desktop/phone widths; three new rule tests and nine existing tests pass.
 - [x] Add home-screen manifest, logo icons, owner-only phone registration and server-side new-online-order alert delivery; Firebase sending connection verified.
 - [ ] Activate and verify background phone notifications: Firebase Include web push configuration was skipped; needs web app API key, app ID, public VAPID key, publication and phone permission.
