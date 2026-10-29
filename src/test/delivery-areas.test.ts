@@ -27,3 +27,11 @@ it("builds the delivery note from the chosen area and the exact spot", () => {
 it("keeps the delivery note inside the limit the order schema accepts", () => {
   expect(deliveryLocation("Yellow House", "x".repeat(400)).length).toBeLessThanOrEqual(200);
 });
+
+it("asks for a room number only in the hostel areas the owner named", () => {
+  expect(ROOM_AREAS).toEqual(["ACK", "Amor Heights", "Centre 84", "Diana Hostels", "Helida", "Marenyo", "Opembi"]);
+  expect(needsRoom("ACK")).toBe(true);
+  expect(needsRoom("Opembi")).toBe(true);
+  expect(needsRoom("Orange House")).toBe(false);
+  expect(needsRoom("")).toBe(false);
+});
