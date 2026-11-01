@@ -539,6 +539,8 @@ export type Database = {
         Args: { _movement_id: string }
         Returns: undefined
       }
+      employee_can_view: { Args: { _section: string }; Returns: boolean }
+      employee_section_data: { Args: { _section: string }; Returns: Json }
       finalize_admin_bootstrap: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
