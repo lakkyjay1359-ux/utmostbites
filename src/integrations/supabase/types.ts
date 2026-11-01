@@ -131,6 +131,33 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_access: {
+        Row: {
+          email: string
+          enabled: boolean
+          sections: string[]
+          singleton: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email?: string
+          enabled?: boolean
+          sections?: string[]
+          singleton?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          enabled?: boolean
+          sections?: string[]
+          singleton?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string

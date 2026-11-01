@@ -92,6 +92,13 @@
       "when": 1793447028197,
       "tag": "0012_stock_deduct_on_sale",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793512992986,
+      "tag": "0013_employee_dashboard_visibility",
+      "breakpoints": true
     }
   ]
 }
