@@ -131,6 +131,33 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_access: {
+        Row: {
+          email: string
+          enabled: boolean
+          sections: string[]
+          singleton: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email?: string
+          enabled?: boolean
+          sections?: string[]
+          singleton?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          enabled?: boolean
+          sections?: string[]
+          singleton?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string
@@ -512,6 +539,8 @@ export type Database = {
         Args: { _movement_id: string }
         Returns: undefined
       }
+      employee_can_view: { Args: { _section: string }; Returns: boolean }
+      employee_section_data: { Args: { _section: string }; Returns: Json }
       finalize_admin_bootstrap: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {

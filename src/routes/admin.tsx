@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatOrderNo, ksh } from "@/lib/site";
 import { DashboardView, OrdersView, MenuView, StockView, SalesView, SettingsView } from "@/components/admin/AdminViews";
 import { PosView } from "@/components/admin/PosView";
+import { EmployeeAccess } from "@/components/admin/EmployeeAccess";
+import { EmployeeRoom } from "@/components/admin/EmployeeRoom";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -26,18 +29,23 @@ const NAV = [
 type Tab = (typeof NAV)[number]["id"];
 
 function AdminPage() {
-  const [state, setState] = useState<"loading" | "out" | "denied" | "in">("loading");
+  const [state, setState] = useState<"loading" | "out" | "denied" | "in" | "employee">("loading");
+  const qc = useQueryClient();
+  const logout = async () => { await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut(); setState("out"); };
   const check = async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) return setState("out");
     const { data: ok } = await supabase.rpc("claim_first_admin");
-    setState(ok ? "in" : "denied");
+    if (ok) return setState("in");
+    const { data: access } = await supabase.from("employee_access").select("user_id").eq("user_id", data.user.id).maybeSingle();
+    setState(access ? "employee" : "denied");
   };
   useEffect(() => { check(); }, []);
   if (state === "loading") return <p className="p-16 text-center">Loading…</p>;
   if (state === "out") return <Login onDone={check} />;
-  if (state === "denied") return <p className="p-16 text-center">This account is not an admin. <button className="underline" onClick={async () => { await supabase.auth.signOut(); setState("out"); }}>Sign out</button></p>;
-  return <ControlRoom onLogout={async () => { await supabase.auth.signOut(); setState("out"); }} />;
+  if (state === "denied") return <p className="p-16 text-center">This account has no staff access. <Button variant="link" onClick={logout}>Sign out</Button></p>;
+  if (state === "employee") return <EmployeeRoom onLogout={logout} />;
+  return <ControlRoom onLogout={logout} />;
 }
 
 function Login({ onDone }: { onDone: () => void }) {
@@ -126,7 +134,7 @@ function ControlRoom({ onLogout }: { onLogout: () => void }) {
         {tab === "menu" && <MenuView />}
         {tab === "stock" && <StockView />}
         {tab === "sales" && <SalesView />}
-        {tab === "settings" && <><SettingsView /><ChangePassword /></>}
+        {tab === "settings" && <><SettingsView /><EmployeeAccess /><ChangePassword /></>}
       </main>
     </div>
   );
