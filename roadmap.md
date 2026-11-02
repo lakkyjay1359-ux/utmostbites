@@ -1,6 +1,7 @@
 # Requested updates
-- [ ] Remove the employee dashboard changes that cost 6.10 credits: code, notes, saved password, database table and helper functions.
-- [ ] Confirm every sold item reduces stock; verify a sale deducts linked stock and list menu items still not linked.
+- [x] Remove the employee dashboard changes that cost 6.10 credits: screens, owner controls, saved password, database table and helper functions all deleted; admin sign-in behaves as before.
+- [x] Make sure a sold item reduces stock: payment confirmation now triggers deduction (was status-only); verified a paid sale takes 2 chapatis off and cancelling returns them, and a confirmed order takes 3 smokies off.
+- [ ] Get recipe counts from the owner so more sold items reduce stock: Fried Chicken and Raw Chicken (chicken pieces per Quarter/Half/Full), Rolex (eggs + chapati), plus Chips, Mandazi, Samosa, Tea, Boiled Beans, KFC mtaani and the two combos, which have no stock entry yet.
 - [x] Repair lazy visit RPC execution; six checks passed, verified one saved storefront session appears as a bar and navigation deduplicates it, owner refresh works with no runtime errors; removed the test visit. Publish to activate the correction on the live website.
 - [x] Arrange checkout delivery areas alphabetically and rebuild the delivery option in the owner's mock format (Pickup/Delivery with scooter icon, area dropdown, exact-location field, helper line); 4 new tests, 61 total passing, verified in the preview.
 - [x] Show website visits today and total sessions on the owner dashboard; exclude preview/admin traffic. Verified owner dashboard at desktop/phone widths; three new rule tests and nine existing tests pass.
