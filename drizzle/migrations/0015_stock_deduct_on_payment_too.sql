@@ -1,0 +1,1 @@
+CREATE OR REPLACE TRIGGER orders_stock_sync BEFORE UPDATE OF status, payment_status ON public.orders FOR EACH ROW EXECUTE FUNCTION public.orders_stock_sync();
