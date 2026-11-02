@@ -10,7 +10,6 @@
 <!-- LOVABLE:END -->
 
 ## Project rules
-- Employee visibility uses a singleton owner-managed access record and permission-checked, read-only projection RPC; never grant the employee admin roles or direct private-table reads/writes. This isolates each section and preserves owner-only mutations.
 - Website visits count storefront sessions (30-minute inactivity window) through a deduplicating database RPC; admin-only totals use Nairobi dates and exclude preview/admin traffic.
 - New-order push delivery runs server-side after online order lines save, targets currently verified owner devices only, and never makes a messaging failure fail checkout; the home-screen manifest has no offline cache.
 - Admin sales/period maths lives in src/lib/admin.ts (Nairobi UTC+3; sale = payment_status paid AND status not Cancelled) — one definition shared by dashboard, reports and tests.

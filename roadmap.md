@@ -1,5 +1,6 @@
 # Requested updates
-- [ ] Add one secure employee account and owner-selected, database-enforced dashboard visibility; verify access and revocation.
+- [ ] Remove the employee dashboard changes that cost 6.10 credits: code, notes, saved password, database table and helper functions.
+- [ ] Confirm every sold item reduces stock; verify a sale deducts linked stock and list menu items still not linked.
 - [x] Repair lazy visit RPC execution; six checks passed, verified one saved storefront session appears as a bar and navigation deduplicates it, owner refresh works with no runtime errors; removed the test visit. Publish to activate the correction on the live website.
 - [x] Arrange checkout delivery areas alphabetically and rebuild the delivery option in the owner's mock format (Pickup/Delivery with scooter icon, area dropdown, exact-location field, helper line); 4 new tests, 61 total passing, verified in the preview.
 - [x] Show website visits today and total sessions on the owner dashboard; exclude preview/admin traffic. Verified owner dashboard at desktop/phone widths; three new rule tests and nine existing tests pass.
