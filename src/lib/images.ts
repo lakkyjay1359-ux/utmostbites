@@ -1,5 +1,5 @@
 import chapati from "@/assets/food/chapati.webp";
-import mandazi from "@/assets/food/mandazi.webp";
+import mahamri from "@/assets/food/mahamri.webp";
 import samosa from "@/assets/food/samosa.webp";
 import samosaMeat from "@/assets/food/samosa-meat.webp";
 import kebab from "@/assets/food/kebab.webp";
@@ -19,7 +19,7 @@ import rolex from "@/assets/food/rolex.webp";
 import kfcMtaani from "@/assets/kfc-mtaani.png.asset.json";
 
 export const IMAGES: Record<string, string> = {
-  chapati, mandazi, samosa, "samosa-meat": samosaMeat, kebab, smokies, eggs, smocha,
+  chapati, mahamri, samosa, "samosa-meat": samosaMeat, kebab, smokies, eggs, smocha,
   tea, chips, "fried-chicken": friedChicken, "raw-chicken": rawChicken, beans, smoothie,
   "combo-morning": comboMorning, "combo-evening": comboEvening, rolex, hero, "kfc-mtaani": kfcMtaani.url,
 };

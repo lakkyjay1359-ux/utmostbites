@@ -19,7 +19,7 @@ export const Route = createFileRoute("/about")({
       <h1 className="text-4xl font-bold text-gold">About Us</h1>
       <p className="mt-2 font-script text-2xl text-primary">{BUSINESS.tagline}</p>
       <p className="mt-6 leading-relaxed text-foreground/90">
-        Utmost Bites Fast Arrivals opened in {BUSINESS.established} in {BUSINESS.location}. We serve fresh chapati, mandazi,
+        Utmost Bites Fast Arrivals opened in {BUSINESS.established} in {BUSINESS.location}. We serve fresh chapati, mahamri,
         samosas, smocha, fried chicken, smoothies and ready-to-cook chicken — fast, affordable and made with care for the people of Yala.
       </p>
     </div>

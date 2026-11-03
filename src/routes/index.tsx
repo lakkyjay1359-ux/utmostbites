@@ -28,7 +28,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const POPULAR = ["fried-chicken", "smocha", "kfc-mtaani"];
+const POPULAR = ["kebab", "smocha", "kfc-mtaani"];
 
 function Index() {
   const { data, isLoading, isError } = useQuery(menuQuery);
