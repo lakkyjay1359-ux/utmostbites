@@ -4,7 +4,7 @@ import { BUSINESS, telHref, whatsappHref } from "@/lib/site";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { property: "og:url", content: "https://utmostbites.lovable.app/contact" },
+      { property: "og:url", content: "https://utmostbites.shop/contact" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Contact — Utmost Bites Fast Arrivals" },
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/contact")({
       { property: "og:title", content: "Contact Utmost Bites" },
       { property: "og:description", content: "Call or WhatsApp us to order." },
     ],
-    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/contact" }],
+    links: [{ rel: "canonical", href: "https://utmostbites.shop/contact" }],
   }),
   component: () => (
     <div className="mx-auto max-w-3xl px-4 py-16 text-center">

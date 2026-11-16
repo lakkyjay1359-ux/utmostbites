@@ -22,7 +22,7 @@ function exactSpot(f: { area: string; room: string; location: string }) {
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { property: "og:url", content: "https://utmostbites.lovable.app/cart" },
+      { property: "og:url", content: "https://utmostbites.shop/cart" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Cart & Checkout — Utmost Bites" },
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/cart")({
       { property: "og:title", content: "Cart — Utmost Bites" },
       { property: "og:description", content: "Checkout your Utmost Bites order." },
     ],
-    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/cart" }],
+    links: [{ rel: "canonical", href: "https://utmostbites.shop/cart" }],
   }),
   component: CartPage,
 });

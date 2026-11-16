@@ -9,7 +9,7 @@ import { ProductCard } from "@/components/site/ProductCard";
 export const Route = createFileRoute("/menu")({
   head: () => ({
     meta: [
-      { property: "og:url", content: "https://utmostbites.lovable.app/menu" },
+      { property: "og:url", content: "https://utmostbites.shop/menu" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Menu — Utmost Bites Fast Arrivals" },
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/menu")({
       { property: "og:title", content: "Menu — Utmost Bites" },
       { property: "og:description", content: "Chapati, samosa, smocha, chips, fried chicken, smoothies and more." },
     ],
-    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/menu" }],
+    links: [{ rel: "canonical", href: "https://utmostbites.shop/menu" }],
   }),
   component: MenuPage,
 });

@@ -10,7 +10,7 @@ import { CopyButton } from "@/components/site/CopyButton";
 export const Route = createFileRoute("/track")({
   head: () => ({
     meta: [
-      { property: "og:url", content: "https://utmostbites.lovable.app/track" },
+      { property: "og:url", content: "https://utmostbites.shop/track" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Track Order — Utmost Bites" },
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/track")({
       { property: "og:title", content: "Track your order" },
       { property: "og:description", content: "Enter your order code and phone number." },
     ],
-    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/track" }],
+    links: [{ rel: "canonical", href: "https://utmostbites.shop/track" }],
   }),
   component: TrackPage,
 });

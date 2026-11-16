@@ -6,7 +6,7 @@ import { ComboCard } from "@/components/site/ComboCard";
 export const Route = createFileRoute("/combos")({
   head: () => ({
     meta: [
-      { property: "og:url", content: "https://utmostbites.lovable.app/combos" },
+      { property: "og:url", content: "https://utmostbites.shop/combos" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Combos — Utmost Bites Fast Arrivals" },
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/combos")({
       { property: "og:title", content: "Combos — Utmost Bites" },
       { property: "og:description", content: "Great-value meal combos for every part of your day." },
     ],
-    links: [{ rel: "canonical", href: "https://utmostbites.lovable.app/combos" }],
+    links: [{ rel: "canonical", href: "https://utmostbites.shop/combos" }],
   }),
   component: CombosPage,
 });

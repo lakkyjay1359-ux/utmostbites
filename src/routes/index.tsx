@@ -19,10 +19,10 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Fuel for the Yala Hustle. Order online for delivery or pickup." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:url", content: "https://utmostbites.lovable.app/" },
+      { property: "og:url", content: "https://utmostbites.shop/" },
     ],
     links: [
-      { rel: "canonical", href: "https://utmostbites.lovable.app/" },
+      { rel: "canonical", href: "https://utmostbites.shop/" },
     ],
   }),
   component: Index,
