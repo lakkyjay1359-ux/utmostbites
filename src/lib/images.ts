@@ -16,12 +16,12 @@ import comboMorning from "@/assets/food/combo-morning.webp";
 import comboEvening from "@/assets/food/combo-evening.webp";
 import hero from "@/assets/food/hero.webp";
 import rolex from "@/assets/food/rolex.webp";
-import kfcMtaani from "@/assets/kfc-mtaani.png.asset.json";
+import kfcMtaani from "@/assets/food/kfc-mtaani.webp";
 
 export const IMAGES: Record<string, string> = {
   chapati, mahamri, samosa, "samosa-meat": samosaMeat, kebab, smokies, eggs, smocha,
   tea, chips, "fried-chicken": friedChicken, "raw-chicken": rawChicken, beans, smoothie,
-  "combo-morning": comboMorning, "combo-evening": comboEvening, rolex, hero, "kfc-mtaani": kfcMtaani.url,
+  "combo-morning": comboMorning, "combo-evening": comboEvening, rolex, hero, "kfc-mtaani": kfcMtaani,
 };
 
 export const IMAGE_KEYS = Object.keys(IMAGES).filter((k) => k !== "hero");
