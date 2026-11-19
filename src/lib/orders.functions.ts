@@ -41,7 +41,12 @@ export const placeOrder = createServerFn({ method: "POST" })
       productIds.length ? supabaseAdmin.from("products").select("id,name,price,variants,available").in("id", productIds) : Promise.resolve({ data: [], error: null }),
       comboIds.length ? supabaseAdmin.from("combos").select("id,name,price,available").in("id", comboIds) : Promise.resolve({ data: [], error: null }),
     ]);
-    if (pRes.error || cRes.error) return { ok: false as const, error: "Could not load menu. Please try again." };
+    if (pRes.error || cRes.error) {
+      // Log the real reason (never shown to customers) so it appears in Cloudflare logs.
+      const e = pRes.error ?? cRes.error;
+      console.error("placeOrder menu lookup failed:", JSON.stringify({ message: e?.message, code: e?.code, details: e?.details, hint: e?.hint }));
+      return { ok: false as const, error: "Could not load menu. Please try again." };
+    }
 
     const lines: { item_type: string; item_id: string; name: string; variant: string | null; unit_price: number; qty: number; line_total: number }[] = [];
     for (const it of data.items) {
