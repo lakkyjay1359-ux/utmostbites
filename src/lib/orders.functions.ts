@@ -17,6 +17,7 @@ const orderSchema = z.object({
   location: z.string().trim().max(200).optional().default(""),
   instructions: z.string().trim().max(500).optional().default(""),
   payment: z.enum(["cash", "mpesa_on_delivery", "mpesa"]),
+  turnstileToken: z.string().max(2048).optional(),
   items: z.array(z.object({
     type: z.enum(["product", "combo"]),
     id: z.string().uuid(),
@@ -29,9 +30,36 @@ const orderSchema = z.object({
 
 export type PlaceOrderInput = z.input<typeof orderSchema>;
 
+// Cloudflare Turnstile check. Only enforced when TURNSTILE_SECRET_KEY is set, so the site keeps
+// working until the keys are added in Cloudflare.
+async function turnstilePassed(token: string | undefined): Promise<boolean> {
+  const secret = process.env["TURNSTILE_SECRET_KEY"];
+  if (!secret) return true;
+  if (!token) return false;
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret, response: token }),
+      signal: AbortSignal.timeout(8000),
+    });
+    const body = (await res.json().catch(() => ({}))) as { success?: boolean };
+    return body.success === true;
+  } catch (e) {
+    console.error("Turnstile verification unavailable", e instanceof Error ? e.message : "error");
+    return false;
+  }
+}
+
+// Order flood limits (counted from the orders table, so they work across all servers).
+const PHONE_LIMIT = 3;     // orders per phone number
+const SITE_LIMIT = 60;     // online orders for the whole site
+const LIMIT_WINDOW_MS = 10 * 60 * 1000;
+
 export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => orderSchema.parse(d))
   .handler(async ({ data }) => {
+    if (!(await turnstilePassed(data.turnstileToken))) return { ok: false as const, error: "Please complete the security check and try again." };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: acc } = await supabaseAdmin.from("settings").select("value").eq("key", "accepting_orders").maybeSingle();
     if (acc?.value === "false") return { ok: false as const, error: "We're not taking online orders right now. Please call or WhatsApp us." };
@@ -70,6 +98,14 @@ export const placeOrder = createServerFn({ method: "POST" })
     }
     const total = lines.reduce((s, l) => s + l.line_total, 0);
     const phone = normalizePhone(data.phone);
+
+    const since = new Date(Date.now() - LIMIT_WINDOW_MS).toISOString();
+    const [byPhone, bySite] = await Promise.all([
+      supabaseAdmin.from("orders").select("id", { count: "exact", head: true }).eq("phone", phone).gte("created_at", since),
+      supabaseAdmin.from("orders").select("id", { count: "exact", head: true }).eq("source", "online").gte("created_at", since),
+    ]);
+    if ((byPhone.count ?? 0) >= PHONE_LIMIT) return { ok: false as const, error: "Too many orders from this phone number just now. Please wait a few minutes, or call or WhatsApp us." };
+    if ((bySite.count ?? 0) >= SITE_LIMIT) return { ok: false as const, error: "We're very busy right now. Please order via WhatsApp or call us." };
 
     const { data: cust } = await supabaseAdmin.from("customers")
       .upsert({ name: data.name, phone }, { onConflict: "phone" }).select("id").single();

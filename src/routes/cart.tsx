@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Scooter, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { DEFAULT_CHECKOUT_PAYMENT, DELIVERY_AREAS, deliveryLocation, formatOrderNo, ksh, needsRoom, whatsappHref } from "@/lib/site";
@@ -44,6 +44,43 @@ function CartPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ code: string; total: number; orderNo: number | null; receipt: string | null; lines: { name: string; variant: string | null; qty: number; line_total: number }[] } | null>(null);
+  const turnstileKey = (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined) || "";
+  const turnstileBox = useRef<HTMLDivElement>(null);
+  const turnstileWidget = useRef<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  useEffect(() => {
+    if (!turnstileKey || done) return;
+    let cancelled = false;
+    const mount = () => {
+      const ts = (window as any).turnstile;
+      if (cancelled || !ts || !turnstileBox.current || turnstileWidget.current) return;
+      turnstileWidget.current = ts.render(turnstileBox.current, {
+        sitekey: turnstileKey,
+        theme: "dark",
+        callback: (t: string) => setTurnstileToken(t),
+        "expired-callback": () => setTurnstileToken(""),
+        "error-callback": () => setTurnstileToken(""),
+      });
+    };
+    if ((window as any).turnstile) mount();
+    else {
+      let script = document.getElementById("cf-turnstile-script") as HTMLScriptElement | null;
+      if (!script) {
+        script = document.createElement("script");
+        script.id = "cf-turnstile-script";
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        document.head.appendChild(script);
+      }
+      script.addEventListener("load", mount);
+    }
+    return () => { cancelled = true; };
+  }, [turnstileKey, done]);
+  const resetTurnstile = () => {
+    setTurnstileToken("");
+    const ts = (window as any).turnstile;
+    if (ts && turnstileWidget.current) { try { ts.reset(turnstileWidget.current); } catch { /* ignore */ } }
+  };
   const [mpesa, setMpesa] = useState<"idle" | "pushing" | "waiting" | "delayed" | "paid" | "failed">("idle");
 
   const [paymentPending, setPaymentPending] = useState(true);
@@ -139,10 +176,11 @@ function CartPage() {
     const location = f.fulfillment === "delivery" ? deliveryLocation(f.area, exact) : "";
     if (f.fulfillment === "delivery" && !location) { setErr("Choose your area or type your exact location."); return; }
     if (f.fulfillment === "delivery" && needsRoom(f.area) && !f.room.trim()) { setErr("Add the room number."); return; }
+    if (turnstileKey && !turnstileToken) { setErr("Please complete the security check below."); return; }
     setBusy(true);
     try {
       const details = { name: f.name, phone: f.phone, fulfillment: f.fulfillment, instructions: f.instructions, payment: f.payment };
-      const r = await submit({ data: { ...details, location, items: cart.items.map((i) => ({ type: i.type, id: i.id, variant: i.variant, qty: i.qty })) } });
+      const r = await submit({ data: { ...details, location, turnstileToken: turnstileToken || undefined, items: cart.items.map((i) => ({ type: i.type, id: i.id, variant: i.variant, qty: i.qty })) } });
       if (r.ok) {
         setDone({ code: r.code, total: r.total, lines: r.lines, orderNo: null, receipt: null }); cart.clear();
         if (f.payment === "mpesa") {
@@ -151,7 +189,7 @@ function CartPage() {
       } else setErr(r.error);
     } catch (x: any) {
       setErr(x?.message?.includes("phone") ? "Enter a valid Kenyan phone number." : "Please check your details (name, phone, delivery location).");
-    } finally { setBusy(false); }
+    } finally { setBusy(false); resetTurnstile(); }
   };
 
   const input = "w-full rounded-lg border border-input bg-background px-3 py-2.5";
@@ -201,6 +239,7 @@ function CartPage() {
           <option value="cash">Cash on {f.fulfillment}</option>
           <option value="mpesa_on_delivery">M-Pesa to staff on {f.fulfillment}</option>
         </select>
+        {turnstileKey && <div ref={turnstileBox} className="flex justify-center" />}
         {err && <p className="text-sm text-destructive">{err}</p>}
         <button disabled={busy} className="w-full rounded-full bg-gold py-3 font-bold text-primary-foreground disabled:opacity-50">{busy ? "Placing order…" : `Place order · ${ksh(cart.total)}`}</button>
         <a href={whatsappHref(summary)} target="_blank" rel="noreferrer" className="block w-full rounded-full bg-fresh py-3 text-center font-bold text-fresh-foreground">Order via WhatsApp instead</a>
