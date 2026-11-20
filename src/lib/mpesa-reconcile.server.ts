@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { MPESA_QUERY_INTERVAL_MS, queryOutcome, queryReceipt } from "./mpesa";
 import { stkQuery } from "./mpesa.server";
+import { sendOrderSms } from "./sms-alert.server";
 
 export async function reconcilePayment(id: string) {
   const { data: order, error } = await supabaseAdmin.from("orders")
@@ -21,11 +22,13 @@ export async function reconcilePayment(id: string) {
   const outcome = queryOutcome(result);
   if (outcome !== "pending") {
     const receipt = queryReceipt(result);
-    const { error: saveError } = await supabaseAdmin.from("orders").update({
+    const { data: flipped, error: saveError } = await supabaseAdmin.from("orders").update({
       payment_status: outcome, payment_note: result.ResultDesc ?? null,
       ...(receipt ? { payment_ref: receipt } : {}),
-    }).eq("id", id).eq("mpesa_checkout_request_id", order.mpesa_checkout_request_id).eq("payment_status", "pending");
+    }).eq("id", id).eq("mpesa_checkout_request_id", order.mpesa_checkout_request_id).eq("payment_status", "pending").select("id");
     if (saveError) { console.error("M-Pesa query save error", saveError.message); throw new Error(saveError.message); }
+    // Only the call that actually changed the status sends the alert, so it goes out once.
+    if (outcome === "paid" && flipped?.length) await sendOrderSms(id, "paid");
   }
   const { data: current, error: readError } = await supabaseAdmin.from("orders")
     .select("id, payment, payment_status, mpesa_checkout_request_id, payment_ref, payment_note, order_no").eq("id", id).single();

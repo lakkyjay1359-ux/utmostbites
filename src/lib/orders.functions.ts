@@ -55,6 +55,7 @@ async function turnstilePassed(token: string | undefined): Promise<boolean> {
 // Only online orders count: walk-in (POS) sales never trigger or use up these limits.
 const PHONE_LIMIT = 3;     // orders per phone number
 const SITE_LIMIT = 60;     // online orders for the whole site
+const SMS_LIMIT = 15;      // stop sending owner SMS alerts after this many online orders per window
 const LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
 export const placeOrder = createServerFn({ method: "POST" })
@@ -127,10 +128,13 @@ export const placeOrder = createServerFn({ method: "POST" })
       await supabaseAdmin.from("orders").delete().eq("id", order.id);
       return { ok: false as const, error: "We couldn't save your order. Please order via WhatsApp or call us." };
     }
-    try {
-      const { sendNewOrderAlert } = await import("./admin-push.server");
-      await sendNewOrderAlert({ id: order.id, source: "online" });
-    } catch { console.error("New-order phone alert could not be delivered"); }
+    // SMS alert to the owner. "M-Pesa now" orders are announced once payment is confirmed instead
+    // (see mpesa-reconcile.server.ts), so unpaid or abandoned prompts never text the owner.
+    // The cap keeps a flood of fake orders from running up the SMS bill.
+    if (data.payment !== "mpesa" && (bySite.count ?? 0) < SMS_LIMIT) {
+      const { sendOrderSms } = await import("./sms-alert.server");
+      await sendOrderSms(order.id, "new");
+    }
     return { ok: true as const, code: order.code, total, lines: lines.map((l) => ({ name: l.name, variant: l.variant, qty: l.qty, line_total: l.line_total })) };
   });
 
