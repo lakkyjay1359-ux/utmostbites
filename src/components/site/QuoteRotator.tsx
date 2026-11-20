@@ -1,43 +1,40 @@
 import { useEffect, useState } from "react";
 import { QUOTES } from "@/lib/quotes";
 
-const SHOW_MS = 9000; // how long each saying stays
-const FADE_MS = 500;  // fade out/in time
+const CHANGE_EVERY_MS = 10 * 60 * 1000; // a new saying every 10 minutes
+const FADE_MS = 700;
 
-/** A quiet strip that swaps to a new saying every few seconds. */
+const currentIndex = () => Math.floor(Date.now() / CHANGE_EVERY_MS) % QUOTES.length;
+
+/** One saying at a time, shown over the hero picture. Changes on every 10-minute mark of the clock. */
 export function QuoteRotator() {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
-  const [paused, setPaused] = useState(false);
-
-  // Start from a random saying after the page loads so each visit feels fresh.
-  useEffect(() => { setIndex(Math.floor(Math.random() * QUOTES.length)); }, []);
 
   useEffect(() => {
-    if (paused) return;
-    let swap: ReturnType<typeof setTimeout> | undefined;
-    const timer = setInterval(() => {
-      setVisible(false);
-      swap = setTimeout(() => { setIndex((i) => (i + 1) % QUOTES.length); setVisible(true); }, FADE_MS);
-    }, SHOW_MS);
-    return () => { clearInterval(timer); if (swap) clearTimeout(swap); };
-  }, [paused]);
+    let timer: ReturnType<typeof setTimeout>;
+    let swap: ReturnType<typeof setTimeout>;
+    setIndex(currentIndex());
+    const schedule = () => {
+      const wait = CHANGE_EVERY_MS - (Date.now() % CHANGE_EVERY_MS);
+      timer = setTimeout(() => {
+        setVisible(false);
+        swap = setTimeout(() => { setIndex(currentIndex()); setVisible(true); schedule(); }, FADE_MS);
+      }, wait);
+    };
+    schedule();
+    return () => { clearTimeout(timer); clearTimeout(swap); };
+  }, []);
 
   const q = QUOTES[index];
   return (
-    <section
+    <figure
       aria-label="A thought for the day"
-      className="border-b border-accent/40 bg-espresso"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      className={`mt-10 max-w-xl border-l-2 border-primary pl-4 transition-opacity motion-reduce:transition-none ${visible ? "opacity-100" : "opacity-0"}`}
+      style={{ transitionDuration: `${FADE_MS}ms` }}
     >
-      <figure
-        className={`mx-auto flex min-h-[7rem] max-w-3xl flex-col items-center justify-center px-6 py-6 text-center transition-opacity motion-reduce:transition-none ${visible ? "opacity-100" : "opacity-0"}`}
-        style={{ transitionDuration: `${FADE_MS}ms` }}
-      >
-        <blockquote className="text-lg italic text-muted-foreground sm:text-xl">“{q.text}”</blockquote>
-        <figcaption className="mt-2 text-sm font-semibold text-primary">— {q.author}</figcaption>
-      </figure>
-    </section>
+      <blockquote className="text-lg italic leading-snug text-foreground/90 [text-shadow:0_1px_6px_rgba(0,0,0,0.8)] sm:text-xl">“{q.text}”</blockquote>
+      <figcaption className="mt-2 text-sm font-semibold text-primary [text-shadow:0_1px_6px_rgba(0,0,0,0.8)]">— {q.author}</figcaption>
+    </figure>
   );
 }

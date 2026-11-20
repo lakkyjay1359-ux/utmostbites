@@ -39,7 +39,7 @@ function Index() {
       <section className="relative overflow-hidden border-b-2 border-accent">
         <img src={hero1600} srcSet={HERO_SRCSET} sizes="100vw" fetchPriority="high" loading="eager" decoding="async" alt="Young man in an Utmost Bites T-shirt serving customers at the shop counter" width={1600} height={1073} className="absolute inset-0 h-full w-full bg-espresso object-cover" />
         <div className="absolute inset-0 bg-hero-fade" />
-        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:py-32">
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-24 sm:pb-12 sm:pt-32">
           <p className="text-xs uppercase tracking-[0.3em] text-primary">Est. {BUSINESS.established} · Yala Town</p>
           <h1 className="mt-4 max-w-4xl text-4xl font-extrabold uppercase leading-tight text-gold sm:text-6xl lg:text-7xl">Utmost Bites and Cafe Fast Arrivals</h1>
           <p className="mt-4 font-script text-3xl text-primary">{BUSINESS.tagline}</p>
@@ -47,9 +47,9 @@ function Index() {
             <Link to="/menu" className="rounded-full bg-gold px-7 py-3.5 font-bold text-primary-foreground shadow-glow">Order Now</Link>
             <a href={telHref} className="flex items-center gap-2 rounded-full border-2 border-accent bg-accent/20 px-7 py-3.5 font-bold"><Phone className="h-5 w-5" /> Call Now</a>
           </div>
+          <QuoteRotator />
         </div>
       </section>
-      <QuoteRotator />
       <section className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-center text-3xl font-bold text-gold">Our Popular Bites</h2>
         {isLoading && <p className="mt-8 text-center text-muted-foreground">Loading…</p>}
