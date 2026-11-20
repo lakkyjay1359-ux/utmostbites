@@ -9,6 +9,7 @@ const HERO_SRCSET = `${hero640} 640w, ${hero1024} 1024w, ${hero1600} 1600w`;
 import { BUSINESS, telHref } from "@/lib/site";
 import { menuQuery } from "@/lib/menu";
 import { ProductCard } from "@/components/site/ProductCard";
+import { QuoteRotator } from "@/components/site/QuoteRotator";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,6 +49,7 @@ function Index() {
           </div>
         </div>
       </section>
+      <QuoteRotator />
       <section className="mx-auto max-w-7xl px-4 py-16">
         <h2 className="text-center text-3xl font-bold text-gold">Our Popular Bites</h2>
         {isLoading && <p className="mt-8 text-center text-muted-foreground">Loading…</p>}
