@@ -52,6 +52,7 @@ async function turnstilePassed(token: string | undefined): Promise<boolean> {
 }
 
 // Order flood limits (counted from the orders table, so they work across all servers).
+// Only online orders count: walk-in (POS) sales never trigger or use up these limits.
 const PHONE_LIMIT = 3;     // orders per phone number
 const SITE_LIMIT = 60;     // online orders for the whole site
 const LIMIT_WINDOW_MS = 10 * 60 * 1000;
@@ -101,7 +102,7 @@ export const placeOrder = createServerFn({ method: "POST" })
 
     const since = new Date(Date.now() - LIMIT_WINDOW_MS).toISOString();
     const [byPhone, bySite] = await Promise.all([
-      supabaseAdmin.from("orders").select("id", { count: "exact", head: true }).eq("phone", phone).gte("created_at", since),
+      supabaseAdmin.from("orders").select("id", { count: "exact", head: true }).eq("phone", phone).eq("source", "online").gte("created_at", since),
       supabaseAdmin.from("orders").select("id", { count: "exact", head: true }).eq("source", "online").gte("created_at", since),
     ]);
     if ((byPhone.count ?? 0) >= PHONE_LIMIT) return { ok: false as const, error: "Too many orders from this phone number just now. Please wait a few minutes, or call or WhatsApp us." };
