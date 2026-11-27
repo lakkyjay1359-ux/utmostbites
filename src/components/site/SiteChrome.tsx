@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu as MenuIcon, Phone, ShoppingBag, X, MessageCircle } from "lucide-react";
+import { Menu as MenuIcon, Phone, ShoppingBag, X, MessageCircle, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/lib/cart";
 import { BUSINESS, telHref, whatsappHref } from "@/lib/site";
@@ -16,11 +16,27 @@ const NAV = [
   { to: "/track", label: "Track Order" },
 ] as const;
 
+function DeliveryBanner() {
+  return (
+    <div role="marquee" aria-label="We offer free delivery!" className="overflow-hidden bg-primary text-primary-foreground">
+      <div className="delivery-marquee flex w-max items-center py-1.5">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <span key={i} className="flex items-center" aria-hidden={i > 0}>
+            <span className="whitespace-nowrap px-8 text-sm font-bold uppercase tracking-widest sm:text-base">We offer free delivery!</span>
+            <Star className="h-4 w-4 fill-current" />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SiteHeader() {
   const { count } = useCart();
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-40 border-b border-accent/40 bg-background/90 backdrop-blur">
+      <DeliveryBanner />
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
         <Link to="/" className="flex items-center gap-2 leading-none" onClick={() => setOpen(false)}>
           <img src={logo} alt="Utmost Bites logo" width={44} height={44} className="h-11 w-11 object-contain" />

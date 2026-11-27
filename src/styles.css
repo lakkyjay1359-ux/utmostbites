@@ -113,3 +113,12 @@
   .print-receipt .pr-total { font-weight: bold; font-size: 14px; }
   .print-receipt hr { border: none; border-top: 1px dashed #000; margin: 4px 0; }
 }
+
+@keyframes delivery-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.delivery-marquee { animation: delivery-marquee 28s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .delivery-marquee { animation: none; }
+}
